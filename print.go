@@ -65,7 +65,7 @@ func imageToBytes(filePath string, maxWidth int) ([]byte, int, int, error) {
 	return imageData, width, height, nil
 }
 
-func print() {
+func print(data []byte) {
 	// Printer name
 	printerName, err := syscall.UTF16PtrFromString("EPSON TM-T82 Receipt")
 	if err != nil {
@@ -87,7 +87,7 @@ func print() {
 	defer closePrinter.Call(uintptr(handle))
 
 	// Start document
-	docName, _ := syscall.UTF16PtrFromString("My Document")
+	docName, _ := syscall.UTF16PtrFromString("Receipt Print")
 	dataType, _ := syscall.UTF16PtrFromString("RAW")
 	di := DOC_INFO_1{
 		pDocName:  docName,
@@ -102,30 +102,6 @@ func print() {
 		fmt.Println("Error starting document:", err)
 		return
 	}
-
-	imageData, widthPixels, heightPixels, _ := imageToBytes("cat.bmp", 480) // Adjust path and width
-	x := (widthPixels + 7) / 8                                              // 1 byte per row
-	y := heightPixels                                                       // 8 rows
-	xL := byte(x % 256)                                                     // 1
-	xH := byte(x / 256)                                                     // 0
-	yL := byte(y % 256)                                                     // 8
-	yH := byte(y / 256)                                                     // 0
-
-	// ESC/POS commands
-	data := []byte{
-		0x1B, 0x40, // Initialize printer
-		0x1B, 0x61, 0x01, // Center alignment
-		0x1D, 0x76, 0x30, 0x00, // GS v 0 command
-		xL, xH, yL, yH, // Width and height parameters
-	}
-	data = append(data, imageData...) // Image data
-	data = append(data, 0x0A)         // Line feed
-	data = append(data, 0x1B, 0x61, 0x01)
-	data = append(data, []byte("hello world\n")...)
-	data = append(data, 0x1B, 0x61, 0x00) // Left alignment
-	data = append(data, []byte("hello world\n")...)
-	data = append(data, 0x1B, 0x64, 0x04) // Feed 4 lines
-	data = append(data, 0x1D, 0x56, 0x00) // Full cut
 
 	// Write to printer
 	var written uint32
