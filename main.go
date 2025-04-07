@@ -1,6 +1,7 @@
 package main
 
 import (
+	"edy-tanto/printer-pos/internal/print_raw/driver_windows"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -41,13 +42,13 @@ func main() {
 type printHandler struct{}
 
 func (h *printHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	imageData, widthPixels, heightPixels, _ := imageToBytes("cat.bmp", MAX_WIDTH_IMAGE) // Adjust path and width
-	x := (widthPixels + 7) / 8                                                          // 1 byte per row
-	y := heightPixels                                                                   // 8 rows
-	xL := byte(x % 256)                                                                 // 1
-	xH := byte(x / 256)                                                                 // 0
-	yL := byte(y % 256)                                                                 // 8
-	yH := byte(y / 256)                                                                 // 0
+	imageData, widthPixels, heightPixels, _ := driver_windows.ImageToBytes("cat.bmp", MAX_WIDTH_IMAGE) // Adjust path and width
+	x := (widthPixels + 7) / 8                                                                         // 1 byte per row
+	y := heightPixels                                                                                  // 8 rows
+	xL := byte(x % 256)                                                                                // 1
+	xH := byte(x / 256)                                                                                // 0
+	yL := byte(y % 256)                                                                                // 8
+	yH := byte(y / 256)                                                                                // 0
 
 	// ESC/POS commands
 	data := []byte{
@@ -65,7 +66,7 @@ func (h *printHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	data = append(data, 0x1B, 0x64, 0x04) // Feed 4 lines
 	data = append(data, 0x1D, 0x56, 0x00) // Full cut
 
-	print(data)
+	driver_windows.Print(data)
 	w.Write([]byte("print accepted"))
 }
 
