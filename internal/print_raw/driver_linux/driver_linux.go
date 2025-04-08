@@ -1,3 +1,6 @@
+//go:build linux
+// +build linux
+
 package driver_linux
 
 import (
@@ -6,7 +9,7 @@ import (
 	"os/exec"
 )
 
-func print(data []byte) {
+func Print(data []byte) {
 	// Write the receipt data to a temporary file
 	tmpFile, err := os.CreateTemp("", "receipt-*.escpos")
 	if err != nil {
