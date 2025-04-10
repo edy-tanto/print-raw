@@ -1,19 +1,24 @@
 package print_web_service
 
 import (
-	"edy-tanto/printer-pos/internal/print_raw/driver_linux"
 	"edy-tanto/printer-pos/internal/print_raw/driver_windows"
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strings"
 )
 
 type SalesDetail struct {
+	Item     string  `json:"item"`
+	Qty      uint    `json:"qty"`
+	Subtotal float32 `json:"subtotal"`
 }
 
 type Sales struct {
 	Id             uint          `json:"id"`
 	Code           string        `json:"code"`
+	Op             string        `json:"op"`
+	Date           string        `json:"date"`
 	DiscountAmount float32       `json:"discount_amount"`
 	Summary        float32       `json:"summary"`
 	SalesDetails   []SalesDetail `json:"sales_details"`
@@ -43,12 +48,12 @@ func (h *PrintHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	executePrint(printReqBody)
+	ExecutePrint(printReqBody)
 
 	json.NewEncoder(w).Encode(printReqBody)
 }
 
-func executePrint(body PrintRequestBody) {
+func ExecutePrint(body PrintRequestBody) {
 	const MAX_WIDTH_IMAGE = 384
 
 	imageData, widthPixels, heightPixels, _ := driver_windows.ImageToBytes("cat.bmp", MAX_WIDTH_IMAGE) // Adjust path and width
@@ -67,18 +72,55 @@ func executePrint(body PrintRequestBody) {
 		xL, xH, yL, yH, // Width and height parameters
 	}
 
+	// Header
 	data = append(data, imageData...) // Image data
 	data = append(data, 0x0A)         // Line feed
 	data = append(data, 0x1B, 0x61, 0x01)
-	data = append(data, []byte("Qubu Resort Waterpark\n")...)
+	data = append(data, []byte("Qubu Resort Waterpark\n\n")...)
 	data = append(data, 0x1B, 0x61, 0x00) // Left alignment
-	data = append(data, []byte("2025-05-01 18:59:59")...)
 
-	summary := fmt.Sprintf("Summary %14.0f\n", body.Sales.Summary)
-	data = append(data, []byte(summary)...)
+	date := fmt.Sprintf("%-6s : %-20s\n", "Date", body.Sales.Date)
+	data = append(data, []byte(date)...)
+	op := fmt.Sprintf("%-6s : %-20s\n", "OP", body.Sales.Op)
+	data = append(data, []byte(op)...)
+
+	data = append(data, []byte("\n")...)
+
+	// Content
+	columnName := fmt.Sprintf(
+		"%-23s %-9s %14s\n",
+		"Item",
+		"Qty",
+		"Price",
+	)
+	data = append(data, []byte(columnName)...)
+
+	data = append(data, []byte(strings.Repeat("-", 48))...)
+
+	for _, detail := range body.Sales.SalesDetails {
+		detailText := fmt.Sprintf(
+			"%-20s %-1s %3d %-6s %14.0f\n",
+			detail.Item,
+			" ",
+			detail.Qty,
+			" ",
+			detail.Subtotal,
+		)
+		data = append(data, []byte(detailText)...)
+	}
+
+	data = append(data, []byte("\n")...)
+
+	// Summary
+	discountAmount := fmt.Sprintf("%-33s %14.0f\n", "Diskon", body.Sales.DiscountAmount)
+	grandTotal := fmt.Sprintf("%-33s %14.0f\n", "Total", body.Sales.Summary)
+	data = append(data, []byte(discountAmount)...)
+	data = append(data, []byte(grandTotal)...)
+
+	// Footer
 	data = append(data, 0x1B, 0x64, 0x04) // Feed 4 lines
 	data = append(data, 0x1D, 0x56, 0x00) // Full cut
 
-	// driver_windows.Print(data)
-	driver_linux.Print(data)
+	driver_windows.Print(data)
+	// driver_linux.Print(data)
 }
