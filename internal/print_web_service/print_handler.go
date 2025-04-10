@@ -1,14 +1,22 @@
 package print_web_service
 
 import (
+	"edy-tanto/printer-pos/internal/print_raw/driver_linux"
 	"edy-tanto/printer-pos/internal/print_raw/driver_windows"
 	"encoding/json"
 	"fmt"
 	"net/http"
 )
 
+type SalesDetail struct {
+}
+
 type Sales struct {
-	Summary int `json:"summary"`
+	Id             uint          `json:"id"`
+	Code           string        `json:"code"`
+	DiscountAmount float32       `json:"discount_amount"`
+	Summary        float32       `json:"summary"`
+	SalesDetails   []SalesDetail `json:"sales_details"`
 }
 
 type PrintRequestBody struct {
@@ -62,13 +70,15 @@ func executePrint(body PrintRequestBody) {
 	data = append(data, imageData...) // Image data
 	data = append(data, 0x0A)         // Line feed
 	data = append(data, 0x1B, 0x61, 0x01)
-	data = append(data, []byte("hello world\n")...)
+	data = append(data, []byte("Qubu Resort Waterpark\n")...)
 	data = append(data, 0x1B, 0x61, 0x00) // Left alignment
+	data = append(data, []byte("2025-05-01 18:59:59")...)
 
-	summary := fmt.Sprintf("Summary %14.0f\n", float32(body.Sales.Summary))
+	summary := fmt.Sprintf("Summary %14.0f\n", body.Sales.Summary)
 	data = append(data, []byte(summary)...)
 	data = append(data, 0x1B, 0x64, 0x04) // Feed 4 lines
 	data = append(data, 0x1D, 0x56, 0x00) // Full cut
 
-	driver_windows.Print(data)
+	// driver_windows.Print(data)
+	driver_linux.Print(data)
 }
