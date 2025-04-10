@@ -1,9 +1,11 @@
 package main
 
-import "fmt"
+import (
+	"edy-tanto/printer-pos/internal/print_raw/driver_windows"
+)
 
 func main() {
 	data := []byte{}
 
-	fmt.Println(data)
+	driver_windows.Print(data)
 }
