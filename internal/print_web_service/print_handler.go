@@ -19,6 +19,8 @@ type Sales struct {
 	UnitBusinessName string        `json:"unit_business_name"`
 	Code             string        `json:"code"`
 	Op               string        `json:"op"`
+	ConsumerName     string        `json:"consumer_name"`
+	PaymentMethod    string        `json:"payment_method"`
 	Date             string        `json:"date"`
 	DiscountAmount   float32       `json:"discount_amount"`
 	Summary          float32       `json:"summary"`
@@ -93,12 +95,16 @@ func ExecutePrint(body PrintRequestBody) {
 	data = append(data, 0x1D, 0x21, 0x00) // Reset to normal size
 	data = append(data, 0x1B, 0x61, 0x00) // Left alignment
 
-	date := fmt.Sprintf("%-6s : %-20s\n", "Date", body.Sales.Date)
+	date := fmt.Sprintf("%-14s : %-20s\n", "Date", body.Sales.Date)
 	data = append(data, []byte(date)...)
-	code := fmt.Sprintf("%-6s : %-20s\n", "Code", body.Sales.Code)
+	code := fmt.Sprintf("%-14s : %-20s\n", "Code", body.Sales.Code)
 	data = append(data, []byte(code)...)
-	op := fmt.Sprintf("%-6s : %-20s\n", "OP", body.Sales.Op)
+	op := fmt.Sprintf("%-14s : %-20s\n", "OP", body.Sales.Op)
 	data = append(data, []byte(op)...)
+	consumerName := fmt.Sprintf("%-14s : %-20s\n", "Nama Pelanggan", body.Sales.ConsumerName)
+	data = append(data, []byte(consumerName)...)
+	paymentMethod := fmt.Sprintf("%-14s : %-20s\n", "Metode Bayar", body.Sales.PaymentMethod)
+	data = append(data, []byte(paymentMethod)...)
 
 	data = append(data, []byte("\n")...)
 

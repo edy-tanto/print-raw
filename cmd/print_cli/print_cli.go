@@ -7,13 +7,15 @@ import (
 func main() {
 	body := print_web_service.PrintRequestBody{
 		Sales: print_web_service.Sales{
-			Id:             1,
+			Id:               1,
 			UnitBusinessName: "ParadisQ",
-			Code:           "#LC0551",
-			Op:             "Kasir 1",
-			Date:           "2025-05-01 18:59:59",
-			DiscountAmount: 20000,
-			Summary:        605000,
+			Code:             "#LC0551",
+			Op:               "Kasir 1",
+			ConsumerName:     "Yandi",
+			PaymentMethod:    "Tunai",
+			Date:             "2025-05-01 18:59:59",
+			DiscountAmount:   20000,
+			Summary:          605000,
 			SalesDetails: []print_web_service.SalesDetail{
 				{Item: "Gelang", Qty: 5, Subtotal: 125000},
 				{Item: "CashQ", Qty: 1, Subtotal: 500000},
