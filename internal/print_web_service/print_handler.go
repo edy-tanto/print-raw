@@ -15,13 +15,14 @@ type SalesDetail struct {
 }
 
 type Sales struct {
-	Id             uint          `json:"id"`
-	Code           string        `json:"code"`
-	Op             string        `json:"op"`
-	Date           string        `json:"date"`
-	DiscountAmount float32       `json:"discount_amount"`
-	Summary        float32       `json:"summary"`
-	SalesDetails   []SalesDetail `json:"sales_details"`
+	Id               uint          `json:"id"`
+	UnitBusinessName string        `json:"unit_business_name"`
+	Code             string        `json:"code"`
+	Op               string        `json:"op"`
+	Date             string        `json:"date"`
+	DiscountAmount   float32       `json:"discount_amount"`
+	Summary          float32       `json:"summary"`
+	SalesDetails     []SalesDetail `json:"sales_details"`
 }
 
 type PrintRequestBody struct {
@@ -76,15 +77,21 @@ func ExecutePrint(body PrintRequestBody) {
 	data = append(data, imageData...) // Image data
 	data = append(data, 0x0A)         // Line feed
 	data = append(data, 0x1B, 0x61, 0x01)
-	data = append(data, []byte("Qubu Resort Waterpark\n\n")...)
+	data = append(data, 0x1D, 0x21, 0x01) // Double height
+	data = append(data, []byte(body.Sales.UnitBusinessName+"\n\n")...)
+	data = append(data, 0x1D, 0x21, 0x00) // Reset to normal size
 	data = append(data, 0x1B, 0x61, 0x00) // Left alignment
 
 	date := fmt.Sprintf("%-6s : %-20s\n", "Date", body.Sales.Date)
 	data = append(data, []byte(date)...)
+	code := fmt.Sprintf("%-6s : %-20s\n", "Date", body.Sales.Code)
+	data = append(data, []byte(code)...)
 	op := fmt.Sprintf("%-6s : %-20s\n", "OP", body.Sales.Op)
 	data = append(data, []byte(op)...)
 
 	data = append(data, []byte("\n")...)
+
+	data = append(data, 0x1B, 0x45, 0x01) // Turn bold on
 
 	// Content
 	columnName := fmt.Sprintf(
@@ -96,6 +103,7 @@ func ExecutePrint(body PrintRequestBody) {
 	data = append(data, []byte(columnName)...)
 
 	data = append(data, []byte(strings.Repeat("-", 48))...)
+	data = append(data, 0x1B, 0x45, 0x00) // Turn bold off
 
 	for _, detail := range body.Sales.SalesDetails {
 		detailText := fmt.Sprintf(
@@ -113,9 +121,16 @@ func ExecutePrint(body PrintRequestBody) {
 
 	// Summary
 	discountAmount := fmt.Sprintf("%-33s %14.0f\n", "Diskon", body.Sales.DiscountAmount)
-	grandTotal := fmt.Sprintf("%-33s %14.0f\n", "Total", body.Sales.Summary)
 	data = append(data, []byte(discountAmount)...)
+
+	data = append(data, []byte("\n")...)
+
+	data = append(data, 0x1D, 0x21, 0x11) // Double height
+
+	grandTotal := fmt.Sprintf("%-9s %14.0f\n", "Total", body.Sales.Summary)
 	data = append(data, []byte(grandTotal)...)
+
+	data = append(data, 0x1D, 0x21, 0x00) // Reset to normal size
 
 	// Footer
 	data = append(data, 0x1B, 0x64, 0x04) // Feed 4 lines

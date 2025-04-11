@@ -8,7 +8,8 @@ func main() {
 	body := print_web_service.PrintRequestBody{
 		Sales: print_web_service.Sales{
 			Id:             1,
-			Code:           "10000",
+			UnitBusinessName: "ParadisQ",
+			Code:           "#LC0551",
 			Op:             "Kasir 1",
 			Date:           "2025-05-01 18:59:59",
 			DiscountAmount: 20000,
