@@ -32,6 +32,17 @@ type PrintRequestBody struct {
 type PrintHandler struct{}
 
 func (h *PrintHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Methods", "OPTIONS, GET, POST, PUT")
+	w.Header().Set("Access-Control-Allow-Headers", "Content-Type, X-CSRF-Token")
+
+	if r.Method == http.MethodOptions {
+		// handle preflight request
+		w.WriteHeader(http.StatusNoContent)
+		w.Write([]byte{})
+		return
+	}
+
 	if r.Method != http.MethodPost {
 		w.WriteHeader(http.StatusNotFound)
 		w.Write([]byte("not found"))
