@@ -68,12 +68,12 @@ func (h *PrintHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 func ExecutePrint(body PrintRequestBody) {
 	const MAX_WIDTH_IMAGE = 384
 
-	imageData, widthPixels, heightPixels, _ := driver_windows.ImageToBytes("cat.bmp", MAX_WIDTH_IMAGE) // Adjust path and width
-	x := (widthPixels + 7) / 8                                                                         // 1 byte per row
-	y := heightPixels                                                                                  // 8 rows
-	xL := byte(x % 256)                                                                                // 1
-	xH := byte(x / 256)                                                                                // 0
-	yL := byte(y % 256)                                                                                // 8
+	imageData, widthPixels, heightPixels, _ := driver_windows.ImageToBytes("paradis-q.bmp", MAX_WIDTH_IMAGE) // Adjust path and width
+	x := (widthPixels + 7) / 8                                                                               // 1 byte per row
+	y := heightPixels                                                                                        // 8 rows
+	xL := byte(x % 256)                                                                                      // 1
+	xH := byte(x / 256)                                                                                      // 0
+	yL := byte(y % 256)                                                                                      // 8
 	yH := byte(y / 256)
 
 	// ESC/POS commands
