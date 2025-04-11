@@ -84,7 +84,7 @@ func ExecutePrint(body PrintRequestBody) {
 
 	date := fmt.Sprintf("%-6s : %-20s\n", "Date", body.Sales.Date)
 	data = append(data, []byte(date)...)
-	code := fmt.Sprintf("%-6s : %-20s\n", "Date", body.Sales.Code)
+	code := fmt.Sprintf("%-6s : %-20s\n", "Code", body.Sales.Code)
 	data = append(data, []byte(code)...)
 	op := fmt.Sprintf("%-6s : %-20s\n", "OP", body.Sales.Op)
 	data = append(data, []byte(op)...)
