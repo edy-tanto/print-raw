@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Call Print</title>
+</head>
+<body>
+    <button onclick="sendPrintRequest()">Print</button>
+
+    <script>
+        function sendPrintRequest() {
+            console.log("Sending print request...");
+
+            fetch('http://localhost:8080', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    sales: {
+                        summary: 20000
+                    }
+                })
+            })
+            .then(response => {
+                if (response.ok) {
+                    console.log("Print request sent successfully.");
+                } else {
+                    console.error("Error sending print request:", response.statusText);
+                }
+            })
+            .catch(error => {
+                console.error("Network error:", error);
+            });
+        }
+    </script>
+</body>
+</html>

@@ -1,7 +1,6 @@
 package print_web_service
 
 import (
-	"edy-tanto/printer-pos/internal/print_raw/driver_linux"
 	"edy-tanto/printer-pos/internal/print_raw/driver_windows"
 	"encoding/json"
 	"fmt"
@@ -90,6 +89,6 @@ func executePrint(body PrintRequestBody) {
 	data = append(data, 0x1B, 0x64, 0x04) // Feed 4 lines
 	data = append(data, 0x1D, 0x56, 0x00) // Full cut
 
-	// driver_windows.Print(data)
-	driver_linux.Print(data)
+	driver_windows.Print(data)
+	// driver_linux.Print(data)
 }
