@@ -13,7 +13,7 @@ func main() {
 			Op:               "Kasir 1",
 			ConsumerName:     "Yandi",
 			PaymentMethod:    "Tunai",
-			Date:             "2025-05-01 18:59:59",
+			Date:             "2025-04-11T11:54:47.000Z",
 			DiscountAmount:   20000,
 			Summary:          605000,
 			SalesDetails: []print_web_service.SalesDetail{
