@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
+	"time"
 )
 
 type SalesDetail struct {
@@ -95,7 +96,7 @@ func ExecutePrint(body PrintRequestBody) {
 	data = append(data, 0x1D, 0x21, 0x00) // Reset to normal size
 	data = append(data, 0x1B, 0x61, 0x00) // Left alignment
 
-	date := fmt.Sprintf("%-14s : %-20s\n", "Date", body.Sales.Date)
+	date := fmt.Sprintf("%-14s : %-20s\n", "Date", formatDatetime(body.Sales.Date))
 	data = append(data, []byte(date)...)
 	code := fmt.Sprintf("%-14s : %-20s\n", "Code", body.Sales.Code)
 	data = append(data, []byte(code)...)
@@ -155,4 +156,16 @@ func ExecutePrint(body PrintRequestBody) {
 
 	driver_windows.Print(data)
 	// driver_linux.Print(data)
+}
+
+func formatDatetime(dateString string) string {
+	dateNoZ := strings.TrimSuffix(dateString, "Z")
+	layout := "2006-01-02T15:04:05.000"
+
+	parsedTime, _ := time.ParseInLocation(layout, dateNoZ, time.Local)
+
+	localTime := parsedTime.In(time.Local)
+	formattedDate := localTime.Format("02/01/2006 15:04")
+
+	return formattedDate
 }
