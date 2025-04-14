@@ -20,11 +20,13 @@ type Sales struct {
 	UnitBusinessName string        `json:"unit_business_name"`
 	Code             string        `json:"code"`
 	Op               string        `json:"op"`
-	ConsumerName     string        `json:"consumer_name"`
+	CustomerName     string        `json:"customer_name"`
 	PaymentMethod    string        `json:"payment_method"`
 	Date             string        `json:"date"`
+	TotalGross       float32       `json:"total_gross"`
+	TaxAmount        float32       `json:"tax_amount"`
 	DiscountAmount   float32       `json:"discount_amount"`
-	Summary          float32       `json:"summary"`
+	GrandTotal       float32       `json:"grand_total"`
 	SalesDetails     []SalesDetail `json:"sales_details"`
 }
 
@@ -102,8 +104,8 @@ func ExecutePrint(body PrintRequestBody) {
 	data = append(data, []byte(code)...)
 	op := fmt.Sprintf("%-14s : %-20s\n", "OP", body.Sales.Op)
 	data = append(data, []byte(op)...)
-	consumerName := fmt.Sprintf("%-14s : %-20s\n", "Nama Pelanggan", body.Sales.ConsumerName)
-	data = append(data, []byte(consumerName)...)
+	customerName := fmt.Sprintf("%-14s : %-20s\n", "Nama Pelanggan", body.Sales.CustomerName)
+	data = append(data, []byte(customerName)...)
 	paymentMethod := fmt.Sprintf("%-14s : %-20s\n", "Metode Bayar", body.Sales.PaymentMethod)
 	data = append(data, []byte(paymentMethod)...)
 
@@ -124,6 +126,7 @@ func ExecutePrint(body PrintRequestBody) {
 	data = append(data, 0x1B, 0x45, 0x00) // Turn bold off
 
 	for _, detail := range body.Sales.SalesDetails {
+		// TODO: handle if item name to long, solution new line or truncate at the last
 		detailText := fmt.Sprintf(
 			"%-20s %-1s %3d %-6s %14.0f\n",
 			detail.Item,
@@ -138,14 +141,20 @@ func ExecutePrint(body PrintRequestBody) {
 	data = append(data, []byte("\n")...)
 
 	// Summary
+	totalGross := fmt.Sprintf("%-33s %14.0f\n", "Subtotal", body.Sales.TotalGross)
+	data = append(data, []byte(totalGross)...)
+
 	discountAmount := fmt.Sprintf("%-33s %14.0f\n", "Diskon", body.Sales.DiscountAmount)
 	data = append(data, []byte(discountAmount)...)
+
+	taxAmount := fmt.Sprintf("%-33s %14.0f\n", "Pajak", body.Sales.TaxAmount)
+	data = append(data, []byte(taxAmount)...)
 
 	data = append(data, []byte("\n")...)
 
 	data = append(data, 0x1D, 0x21, 0x11) // Double height
 
-	grandTotal := fmt.Sprintf("%-9s %14.0f\n", "Total", body.Sales.Summary)
+	grandTotal := fmt.Sprintf("%-9s %14.0f\n", "Total", body.Sales.GrandTotal)
 	data = append(data, []byte(grandTotal)...)
 
 	data = append(data, 0x1D, 0x21, 0x00) // Reset to normal size
@@ -159,13 +168,12 @@ func ExecutePrint(body PrintRequestBody) {
 }
 
 func formatDatetime(dateString string) string {
-	dateNoZ := strings.TrimSuffix(dateString, "Z")
 	layout := "2006-01-02T15:04:05.000"
 
-	parsedTime, _ := time.ParseInLocation(layout, dateNoZ, time.Local)
+	parsedTime, _ := time.ParseInLocation(layout, dateString, time.Local)
 
 	localTime := parsedTime.In(time.Local)
-	formattedDate := localTime.Format("02/01/2006 15:04")
+	formattedDate := localTime.Format("02/01/2006 15:04:05")
 
 	return formattedDate
 }
