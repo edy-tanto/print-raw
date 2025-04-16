@@ -14,9 +14,6 @@ func main() {
 			CustomerName:     "Yandi",
 			PaymentMethod:    "Tunai",
 			Date:             "2025-04-11T11:54:47.000",
-			TotalGross:       805000,
-			TaxAmount:        2000,
-			DiscountAmount:   20000,
 			GrandTotal:       607000,
 			SalesDetails: []print_web_service.SalesDetail{
 				{Item: "Gelang Gelang1 Gelang2 Gelang3 Gelang4 Gelang5 Gelang6 Gelang7", Qty: 5, Subtotal: 125000},

@@ -23,9 +23,6 @@ type Sales struct {
 	CustomerName     string        `json:"customer_name"`
 	PaymentMethod    string        `json:"payment_method"`
 	Date             string        `json:"date"`
-	TotalGross       float32       `json:"total_gross"`
-	TaxAmount        float32       `json:"tax_amount"`
-	DiscountAmount   float32       `json:"discount_amount"`
 	GrandTotal       float32       `json:"grand_total"`
 	SalesDetails     []SalesDetail `json:"sales_details"`
 }
@@ -195,15 +192,6 @@ func ExecutePrint(body PrintRequestBody) {
 	data = append(data, []byte("\n")...)
 
 	// Summary
-	totalGross := fmt.Sprintf("%-33s %14.0f\n", "Subtotal", body.Sales.TotalGross)
-	data = append(data, []byte(totalGross)...)
-
-	discountAmount := fmt.Sprintf("%-33s %14.0f\n", "Diskon", body.Sales.DiscountAmount)
-	data = append(data, []byte(discountAmount)...)
-
-	taxAmount := fmt.Sprintf("%-33s %14.0f\n", "Pajak", body.Sales.TaxAmount)
-	data = append(data, []byte(taxAmount)...)
-
 	data = append(data, []byte("\n")...)
 
 	data = append(data, 0x1D, 0x21, 0x11) // Double height
