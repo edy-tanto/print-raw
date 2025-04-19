@@ -25,7 +25,7 @@ type Sales struct {
 	PaymentMethod    string        `json:"payment_method"`
 	Date             string        `json:"date"`
 	IsPrintAsCopy    bool          `json:"is_print_as_copy"`
-	Foodnote         *string       `json:"footnote,omitempty"`
+	Footnote         *string       `json:"footnote,omitempty"`
 	GrandTotal       float32       `json:"grand_total"`
 	SalesDetails     []SalesDetail `json:"sales_details"`
 }
@@ -144,9 +144,9 @@ func ExecutePrint(body PrintRequestBody) {
 	}
 
 	// Header
-	data = append(data, imageData...) // Image data
-	data = append(data, 0x0A)         // Line feed
-	data = append(data, 0x1B, 0x61, 0x01)
+	data = append(data, imageData...)     // Image data
+	data = append(data, 0x0A)             // Line feed
+	data = append(data, 0x1B, 0x61, 0x01) // Center alignment
 	data = append(data, 0x1D, 0x21, 0x01) // Double height
 	data = append(data, []byte(body.Sales.UnitBusinessName+"\n\n")...)
 	data = append(data, 0x1D, 0x21, 0x00) // Reset to normal size
@@ -178,7 +178,7 @@ func ExecutePrint(body PrintRequestBody) {
 
 	if body.Sales.IsPrintAsCopy == true {
 		data = append(data, 0x1B, 0x61, 0x01) // Center alignment
-		data = append(data, 0x1D, 0x21, 0x22) // Double height
+		data = append(data, 0x1D, 0x21, 0x22) // height 3 width 3
 
 		data = append(data, []byte("SALINAN")...)
 
@@ -213,6 +213,7 @@ func ExecutePrint(body PrintRequestBody) {
 	}
 
 	// Summary
+	data = append(data, 0x1B, 0x61, 0x00) // Left alignment``
 	data = append(data, []byte("\n\n")...)
 
 	data = append(data, 0x1D, 0x21, 0x11) // Double height
@@ -223,11 +224,11 @@ func ExecutePrint(body PrintRequestBody) {
 	data = append(data, 0x1D, 0x21, 0x00) // Reset to normal size
 
 	// Footer
-	if body.Sales.Foodnote != nil {
+	if body.Sales.Footnote != nil {
 		data = append(data, 0x1B, 0x4D, 0x01) // Change font
 
 		data = append(data, []byte("\n\n")...)
-		data = append(data, []byte(*body.Sales.Foodnote)...)
+		data = append(data, []byte(*body.Sales.Footnote)...)
 	}
 
 	data = append(data, 0x1B, 0x64, 0x04) // Feed 4 lines
@@ -257,9 +258,9 @@ func ExecutePrintCashRefund(body PrintCashRefundRequestBody) {
 	}
 
 	// Header
-	data = append(data, imageData...) // Image data
-	data = append(data, 0x0A)         // Line feed
-	data = append(data, 0x1B, 0x61, 0x01)
+	data = append(data, imageData...)     // Image data
+	data = append(data, 0x0A)             // Line feed
+	data = append(data, 0x1B, 0x61, 0x01) // Center alignment
 	data = append(data, 0x1D, 0x21, 0x01) // Double height
 	data = append(data, []byte("REFUND\n\n")...)
 	data = append(data, 0x1D, 0x21, 0x00) // Reset to normal size
