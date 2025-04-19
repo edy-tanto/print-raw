@@ -24,6 +24,7 @@ type Sales struct {
 	TableNumber      *string       `json:"table_number,omitempty"`
 	PaymentMethod    string        `json:"payment_method"`
 	Date             string        `json:"date"`
+	IsPrintAsCopy    bool          `json:"is_print_as_copy"`
 	GrandTotal       float32       `json:"grand_total"`
 	SalesDetails     []SalesDetail `json:"sales_details"`
 }
@@ -173,6 +174,17 @@ func ExecutePrint(body PrintRequestBody) {
 	data = append(data, []byte("\n")...)
 
 	data = append(data, 0x1B, 0x45, 0x01) // Turn bold on
+
+	if body.Sales.IsPrintAsCopy == true {
+		data = append(data, 0x1B, 0x61, 0x01) // Center alignment
+		data = append(data, 0x1D, 0x21, 0x22) // Double height
+
+		data = append(data, []byte("SALINAN")...)
+
+		data = append(data, 0x1D, 0x21, 0x00) // Reset to normal size
+		data = append(data, 0x1B, 0x61, 0x00) // Left alignment
+		data = append(data, []byte("\n\n")...)
+	}
 
 	// Content
 	columnName := fmt.Sprintf(

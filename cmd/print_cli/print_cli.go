@@ -17,6 +17,7 @@ func main() {
 			PaymentMethod:    "Tunai",
 			Date:             "2025-04-11T11:54:47.000",
 			GrandTotal:       607000,
+			IsPrintAsCopy:    true,
 			SalesDetails: []print_web_service.SalesDetail{
 				{Item: "Gelang Gelang1 Gelang2 Gelang3 Gelang4 Gelang5 Gelang6 Gelang7", Qty: 5, Subtotal: 125000},
 				{Item: "CashQ", Qty: 1, Subtotal: 500000},
