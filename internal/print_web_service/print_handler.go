@@ -225,7 +225,7 @@ func ExecutePrint(body PrintRequestBody) {
 
 	// Footer
 	if body.Sales.Footnote != "" {
-		data = append(data, []byte("\n\n")...)
+		data = append(data, []byte("\n")...)
 		data = append(data, []byte(strings.Repeat("-", 48))...)
 		data = append(data, 0x1B, 0x4D, 0x01) // Change font
 
