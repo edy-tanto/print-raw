@@ -20,7 +20,8 @@ type Sales struct {
 	UnitBusinessName string        `json:"unit_business_name"`
 	Code             string        `json:"code"`
 	Op               string        `json:"op"`
-	CustomerName     string        `json:"customer_name"`
+	CustomerName     *string       `json:"customer_name,omitempty"`
+	TableNumber      *string       `json:"table_number,omitempty"`
 	PaymentMethod    string        `json:"payment_method"`
 	Date             string        `json:"date"`
 	GrandTotal       float32       `json:"grand_total"`
@@ -155,8 +156,17 @@ func ExecutePrint(body PrintRequestBody) {
 	data = append(data, []byte(code)...)
 	op := fmt.Sprintf("%-14s : %-20s\n", "OP", body.Sales.Op)
 	data = append(data, []byte(op)...)
-	customerName := fmt.Sprintf("%-14s : %-20s\n", "Nama Pelanggan", body.Sales.CustomerName)
-	data = append(data, []byte(customerName)...)
+
+	if body.Sales.CustomerName != nil {
+		customerName := fmt.Sprintf("%-14s : %-20s\n", "Nama Pelanggan", *body.Sales.CustomerName)
+		data = append(data, []byte(customerName)...)
+	}
+
+	if body.Sales.TableNumber != nil {
+		tableNumber := fmt.Sprintf("%-14s : %-20s\n", "Nomor Meja", *body.Sales.TableNumber)
+		data = append(data, []byte(tableNumber)...)
+	}
+
 	paymentMethod := fmt.Sprintf("%-14s : %-20s\n", "Metode Bayar", body.Sales.PaymentMethod)
 	data = append(data, []byte(paymentMethod)...)
 
@@ -189,10 +199,8 @@ func ExecutePrint(body PrintRequestBody) {
 		data = append(data, []byte(detailText)...)
 	}
 
-	data = append(data, []byte("\n")...)
-
 	// Summary
-	data = append(data, []byte("\n")...)
+	data = append(data, []byte("\n\n")...)
 
 	data = append(data, 0x1D, 0x21, 0x11) // Double height
 

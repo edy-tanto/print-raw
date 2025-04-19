@@ -5,13 +5,15 @@ import (
 )
 
 func main() {
+	name := "Yandi"
+
 	body := print_web_service.PrintRequestBody{
 		Sales: print_web_service.Sales{
 			Id:               1,
 			UnitBusinessName: "ParadisQ",
 			Code:             "#LC0551",
 			Op:               "Kasir 1",
-			CustomerName:     "Yandi",
+			CustomerName:     &name,
 			PaymentMethod:    "Tunai",
 			Date:             "2025-04-11T11:54:47.000",
 			GrandTotal:       607000,
