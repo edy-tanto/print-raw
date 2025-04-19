@@ -20,12 +20,12 @@ type Sales struct {
 	UnitBusinessName string        `json:"unit_business_name"`
 	Code             string        `json:"code"`
 	Op               string        `json:"op"`
-	CustomerName     *string       `json:"customer_name,omitempty"`
-	TableNumber      *string       `json:"table_number,omitempty"`
+	CustomerName     string        `json:"customer_name"`
+	TableNumber      string        `json:"table_number"`
 	PaymentMethod    string        `json:"payment_method"`
 	Date             string        `json:"date"`
 	IsPrintAsCopy    bool          `json:"is_print_as_copy"`
-	Footnote         *string       `json:"footnote,omitempty"`
+	Footnote         string        `json:"footnote"`
 	GrandTotal       float32       `json:"grand_total"`
 	SalesDetails     []SalesDetail `json:"sales_details"`
 }
@@ -159,13 +159,13 @@ func ExecutePrint(body PrintRequestBody) {
 	op := fmt.Sprintf("%-14s : %-20s\n", "OP", body.Sales.Op)
 	data = append(data, []byte(op)...)
 
-	if body.Sales.CustomerName != nil {
-		customerName := fmt.Sprintf("%-14s : %-20s\n", "Nama Pelanggan", *body.Sales.CustomerName)
+	if body.Sales.CustomerName != "" {
+		customerName := fmt.Sprintf("%-14s : %-20s\n", "Nama Pelanggan", body.Sales.CustomerName)
 		data = append(data, []byte(customerName)...)
 	}
 
-	if body.Sales.TableNumber != nil {
-		tableNumber := fmt.Sprintf("%-14s : %-20s\n", "Nomor Meja", *body.Sales.TableNumber)
+	if body.Sales.TableNumber != "" {
+		tableNumber := fmt.Sprintf("%-14s : %-20s\n", "Nomor Meja", body.Sales.TableNumber)
 		data = append(data, []byte(tableNumber)...)
 	}
 
@@ -224,11 +224,11 @@ func ExecutePrint(body PrintRequestBody) {
 	data = append(data, 0x1D, 0x21, 0x00) // Reset to normal size
 
 	// Footer
-	if body.Sales.Footnote != nil {
+	if body.Sales.Footnote != "" {
 		data = append(data, 0x1B, 0x4D, 0x01) // Change font
 
 		data = append(data, []byte("\n\n")...)
-		data = append(data, []byte(*body.Sales.Footnote)...)
+		data = append(data, []byte(body.Sales.Footnote)...)
 	}
 
 	data = append(data, 0x1B, 0x64, 0x04) // Feed 4 lines
