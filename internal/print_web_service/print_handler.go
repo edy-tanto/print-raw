@@ -25,6 +25,7 @@ type Sales struct {
 	PaymentMethod    string        `json:"payment_method"`
 	Date             string        `json:"date"`
 	IsPrintAsCopy    bool          `json:"is_print_as_copy"`
+	Foodnote         *string       `json:"footnote,omitempty"`
 	GrandTotal       float32       `json:"grand_total"`
 	SalesDetails     []SalesDetail `json:"sales_details"`
 }
@@ -222,6 +223,13 @@ func ExecutePrint(body PrintRequestBody) {
 	data = append(data, 0x1D, 0x21, 0x00) // Reset to normal size
 
 	// Footer
+	if body.Sales.Foodnote != nil {
+		data = append(data, 0x1B, 0x4D, 0x01) // Change font
+
+		data = append(data, []byte("\n\n")...)
+		data = append(data, []byte(*body.Sales.Foodnote)...)
+	}
+
 	data = append(data, 0x1B, 0x64, 0x04) // Feed 4 lines
 	data = append(data, 0x1D, 0x56, 0x00) // Full cut
 

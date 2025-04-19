@@ -6,6 +6,7 @@ import (
 
 func main() {
 	name := "Yandi"
+	foodnote := "I acknowledge and agree that\nINSURANCE COVERAGE IS UP TO 60 YEARS OLD\nCertain accident risk not guaranteed\nChildren under 12 y/o is not permitted to enter without\nsupervision\nSwimwear is compulsory in water facility\nNo food and drink from outside\nNo drug or weapon/dangerous subtance"
 
 	body := print_web_service.PrintRequestBody{
 		Sales: print_web_service.Sales{
@@ -18,8 +19,9 @@ func main() {
 			Date:             "2025-04-11T11:54:47.000",
 			GrandTotal:       607000,
 			IsPrintAsCopy:    true,
+			Foodnote:         &foodnote,
 			SalesDetails: []print_web_service.SalesDetail{
-				{Item: "Gelang Gelang1 Gelang2 Gelang3 Gelang4 Gelang5 Gelang6 Gelang7", Qty: 5, Subtotal: 125000},
+				{Item: "Gelang", Qty: 5, Subtotal: 125000},
 				{Item: "CashQ", Qty: 1, Subtotal: 500000},
 			},
 		},
