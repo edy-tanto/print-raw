@@ -52,6 +52,27 @@ type PrintCashRefundRequestBody struct {
 	CashRefund CashRefund `json:"cash_refund"`
 }
 
+type KitchenDetail struct {
+	Item    string  `json:"item"`
+	Qty     uint  	`json:"qty"`
+	Note    string  `json:"note"`
+}
+
+type Kitchen struct {
+	Id					uint				`json:"id"`
+	Op					string				`json:"op"`
+	Code				string				`json:"code"`
+	Outlet				string				`json:"outlet"`
+	CustomerName		string				`json:"customer_name"`
+	TableNumber      	string        		`json:"table_number"`
+	Date           string             		`json:"date"`
+	KitchenDetails		[]KitchenDetail 	`json:"kitchen_details"`
+}
+
+type PrintKitchenRequestBody struct {
+	Kitchen 	Kitchen		`json:"kitchen"`
+}
+
 type PrintHandler struct{}
 
 func (h *PrintHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -120,6 +141,42 @@ func (h *PrintCashRefundHandler) ServeHTTP(w http.ResponseWriter, r *http.Reques
 	}
 
 	ExecutePrintCashRefund(printReqBody)
+
+	json.NewEncoder(w).Encode(printReqBody)
+}
+
+type PrintKitchenHandler struct{}
+
+func (h * PrintKitchenHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Methods", "OPTIONS, GET, POST, PUT")
+	w.Header().Set("Access-Control-Allow-Headers", "Content-Type, X-CSRF-Token")
+
+	if r.Method == http.MethodOptions {
+		// handle preflight request
+		w.WriteHeader(http.StatusNoContent)
+		w.Write([]byte{})
+		return
+	}
+
+	if r.Method != http.MethodPost {
+		w.WriteHeader(http.StatusNotFound)
+		w.Write([]byte("not found"))
+		return
+	}
+
+	var printReqBody PrintKitchenRequestBody
+	err := json.NewDecoder(r.Body).Decode(&printReqBody)
+
+	if err != nil {
+		fmt.Println(err.Error())
+
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte("internal server error"))
+		return
+	}
+
+	ExecutePrintKitchen(printReqBody)
 
 	json.NewEncoder(w).Encode(printReqBody)
 }
@@ -318,6 +375,60 @@ func ExecutePrintCashRefund(body PrintCashRefundRequestBody) {
 
 	driver_windows.Print(data)
 	// driver_linux.Print(data)
+}
+
+func ExecutePrintKitchen(body PrintKitchenRequestBody) {
+	// ESC/POS commands
+	data := []byte{
+		0x1B, 0x40,       // Initialize printer
+		0x1B, 0x61, 0x00, // Left Allignment
+	}
+
+	data = append(data, []byte(strings.Repeat("-", 48))...)
+
+	// Header
+	codeWithOutlet := fmt.Sprintf("%-14s : %-15s %10s\n", "CO ID", body.Kitchen.Code, body.Kitchen.Outlet)
+	data = append(data, []byte(codeWithOutlet)...)
+	op := fmt.Sprintf("%-14s : %-20s\n", "Waitress", body.Kitchen.Op)
+	data = append(data, []byte(op)...)
+	tableNumber := fmt.Sprintf("%-14s : %-20s\n", "Table Number", body.Kitchen.TableNumber)
+	data = append(data, []byte(tableNumber)...)
+	customerName := fmt.Sprintf("%-14s : %-20s\n", "Table Number", body.Kitchen.CustomerName)
+	data = append(data, []byte(customerName)...)
+	location := fmt.Sprintf("%-14s : %-20s\n", "Location", "Kitchen")
+	data = append(data, []byte(location)...)
+
+	// Content
+	data = append(data, []byte(strings.Repeat("-", 48))...)
+	columnName := fmt.Sprintf("%9s %-25s\n", "Qty", "Product")
+	data = append(data, []byte(columnName)...)
+	data = append(data, []byte(strings.Repeat("-", 48))...)
+
+	for _, detail := range body.Kitchen.KitchenDetails {
+		detailText := fmt.Sprintf(
+			"%9d %-25s\n",
+			detail.Qty,
+			detail.Item,
+		)
+		data = append(data, []byte(detailText)...)
+	}
+	data = append(data, []byte(strings.Repeat("-", 48))...)
+
+
+	data = append(data, 0x1D, 0x21, 0x00) // Reset to normal size
+
+	data = append(data, []byte("\n\n")...)
+
+	parsedTime, _ := time.Parse(time.RFC3339Nano, body.Kitchen.Date)
+	localTime := parsedTime.In(time.Local)
+	date := fmt.Sprintf("%-10s %-20s\n", "Printed:", localTime.Format("02/01/2006 15:04:05"))
+	data = append(data, []byte(date)...)
+
+	// Footer
+	data = append(data, 0x1B, 0x64, 0x04) // Feed 4 lines
+	data = append(data, 0x1D, 0x56, 0x00) // Full cut
+
+	driver_windows.Print(data)
 }
 
 func formatDatetime(dateString string) string {
