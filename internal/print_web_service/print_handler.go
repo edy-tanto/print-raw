@@ -94,6 +94,33 @@ type PrintTableCheckRequestBody struct {
 	TableCheck 		TableCheck		`json:"table_check"`
 }
 
+type CaptainOrderBillDetail struct {
+	Item    	string  `json:"item"`
+	Qty     	uint  	`json:"qty"`
+	Subtotal    uint  	`json:"subtotal"`
+}
+
+type CaptainOrderBill struct {
+	Id							uint						`json:"id"`
+	Op							string						`json:"op"`
+	Code						string						`json:"code"`
+	CustomerName				string						`json:"customer_name"`
+	TableNumber      			string        				`json:"table_number"`
+	CustomerAdultCount			uint						`json:"customer_adult_count"`
+	CustomerChildCount			uint						`json:"customer_child_count"`
+	TotalQty					uint						`json:"total_qty"`
+	DiscountAmount				uint						`json:"discount_amount"`
+	TotalGross					uint						`json:"total_gross"`
+	TotalNet					uint						`json:"total_net"`
+	GrandTotal					uint						`json:"grand_total"`
+	Date           				string             			`json:"date"`
+	CaptainOrderBillDetails		[]CaptainOrderBillDetail 	`json:"captain_order_bill_details"`
+}
+
+type PrintCaptainOrderBillRequestBody struct {
+	CaptainOrderBill 		CaptainOrderBill		`json:"captain_order_bill"`
+}
+
 type PrintHandler struct{}
 
 func (h *PrintHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -234,6 +261,42 @@ func (h * PrintTableCheckHandler) ServeHTTP(w http.ResponseWriter, r *http.Reque
 	}
 
 	ExecutePrintTableCheck(printReqBody)
+
+	json.NewEncoder(w).Encode(printReqBody)
+}
+
+type PrintCaptainOrderBillHandler struct{}
+
+func (h * PrintCaptainOrderBillHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Methods", "OPTIONS, GET, POST, PUT")
+	w.Header().Set("Access-Control-Allow-Headers", "Content-Type, X-CSRF-Token")
+
+	if r.Method == http.MethodOptions {
+		// handle preflight request
+		w.WriteHeader(http.StatusNoContent)
+		w.Write([]byte{})
+		return
+	}
+
+	if r.Method != http.MethodPost {
+		w.WriteHeader(http.StatusNotFound)
+		w.Write([]byte("not found"))
+		return
+	}
+
+	var printReqBody PrintCaptainOrderBillRequestBody
+	err := json.NewDecoder(r.Body).Decode(&printReqBody)
+
+	if err != nil {
+		fmt.Println(err.Error())
+
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte("internal server error"))
+		return
+	}
+
+	ExecutePrintCaptainOrderBill(printReqBody)
 
 	json.NewEncoder(w).Encode(printReqBody)
 }
@@ -541,6 +604,94 @@ func ExecutePrintTableCheck(body PrintTableCheckRequestBody) {
 	driver_windows.Print(data)
 }
 
+func ExecutePrintCaptainOrderBill(body PrintCaptainOrderBillRequestBody) {
+	// ESC/POS commands
+	data := []byte{
+		0x1B, 0x40,       // Initialize printer
+		0x1B, 0x61, 0x00, // Left Allignment
+	}
+
+	data = append(data, []byte(strings.Repeat("=", 48))...)
+
+	// Header
+	codeWithOp := fmt.Sprintf("%-6s %-15s %-8s %-14s\n", "CO:", body.CaptainOrderBill.Code, "Waitress:", body.CaptainOrderBill.Op)
+	data = append(data, []byte(codeWithOp)...)
+	tableNumberWithCustomerCount := fmt.Sprintf("%-6s %-15s %-13s %-2d/ %-2d\n", "Table:", body.CaptainOrderBill.TableNumber, "#Adult/#Child:", body.CaptainOrderBill.CustomerAdultCount, body.CaptainOrderBill.CustomerChildCount)
+	data = append(data, []byte(tableNumberWithCustomerCount)...)
+	customerName := fmt.Sprintf("%-6s %-15s\n", "Guest Name:", body.CaptainOrderBill.CustomerName)
+	data = append(data, []byte(customerName)...)
+
+	// Content
+	data = append(data, []byte(strings.Repeat("-", 48))...)
+	columnName := fmt.Sprintf("%-25s %-8s %-10s\n", "Product", "Qty", "Subtotal")
+	data = append(data, []byte(columnName)...)
+	data = append(data, []byte(strings.Repeat("-", 48))...)
+
+	for _, detail := range body.CaptainOrderBill.CaptainOrderBillDetails {
+		detailText := fmt.Sprintf(
+			"%-25s %-8d %-10d\n",
+			detail.Item,
+			detail.Qty,
+			detail.Subtotal,
+		)
+		data = append(data, []byte(detailText)...)
+	}
+	data = append(data, []byte(strings.Repeat("-", 48))...)
+	totalQtyWithSubtotal := fmt.Sprintf("%20s %-4d %8s %-10d\n", "Quantity:", body.CaptainOrderBill.TotalQty, "Subtotal", body.CaptainOrderBill.TotalGross)
+	data = append(data, []byte(totalQtyWithSubtotal)...)
+	discountAmount := fmt.Sprintf("%34s %-4d\n", "Discount", body.CaptainOrderBill.DiscountAmount)
+	data = append(data, []byte(discountAmount)...)
+
+	separator := fmt.Sprintf("%40s\n", "-----------------------")
+	data = append(data, []byte(separator)...)
+
+	grandTotal := fmt.Sprintf("%34s %-4d\n", "Grand Total", body.CaptainOrderBill.TotalNet)
+	data = append(data, []byte(grandTotal)...)
+
+	data = append(data, []byte("\n\n")...)
+
+	ccChargeLabel := fmt.Sprintf("%-35s\n", "CC Charge:")
+	data = append(data, []byte(ccChargeLabel)...)
+	ccChargeValue := fmt.Sprintf("%-35s\n", "0")
+	data = append(data, []byte(ccChargeValue)...)
+
+	remarkLabel := fmt.Sprintf("%-35s\n", "Remark:")
+	data = append(data, []byte(remarkLabel)...)
+	data = append(data, []byte("\n\n")...)
+
+	data = append(data, 0x1B, 0x61, 0x01) // Center alignment
+
+
+	opCentered := centerInParentheses(body.CaptainOrderBill.Op, 20)
+	guestSignature := centerInParentheses("____________________", 20)
+	signatureLine := fmt.Sprintf("%s %s\n", opCentered, guestSignature)
+	data = append(data, []byte(signatureLine)...)
+
+	// Label "Cashier" dan "Guest", masing-masing diformat agar berada di tengah 22 karakter
+	label1 := fmt.Sprintf("%-22s", centerText("Cashier", 22))
+	label2 := fmt.Sprintf("%-22s", centerText("Guest", 22))
+	signatureLabel := fmt.Sprintf("%s%s\n", label1, label2)
+	data = append(data, []byte(signatureLabel)...)
+
+	data = append(data, 0x1B, 0x61, 0x00) // Left alignment
+
+
+	data = append(data, []byte("\n\n")...)
+
+	parsedTime, _ := time.Parse(time.RFC3339Nano, body.CaptainOrderBill.Date)
+	localTime := parsedTime.In(time.Local)
+	postingDate := fmt.Sprintf("%-10s %-20s\n", "Posting Date:", localTime.Format("02/01/2006 15:04:05"))
+	data = append(data, []byte(postingDate)...)
+	printedWithAuditDate := fmt.Sprintf("%-8s %-20s %-5s %-17s\n", "Printed:", localTime.Format("02/01/2006 15:04:05"), "Audit:", localTime.Format("02/01/2006"))
+	data = append(data, []byte(printedWithAuditDate)...)
+
+	// Footer
+	data = append(data, 0x1B, 0x64, 0x04) // Feed 4 lines
+	data = append(data, 0x1D, 0x56, 0x00) // Full cut
+
+	driver_windows.Print(data)
+}
+
 func formatDatetime(dateString string) string {
 	layout := "2006-01-02T15:04:05.000"
 
@@ -551,3 +702,20 @@ func formatDatetime(dateString string) string {
 
 	return formattedDate
 }
+
+	func centerInParentheses(text string, width int) string {
+		padding := width - len(text)
+		left := padding / 2
+		right := padding - left
+		return fmt.Sprintf("(%s%s%s)", strings.Repeat(" ", left), text, strings.Repeat(" ", right))
+	}
+
+	func centerText(text string, width int) string {
+		if len(text) >= width {
+			return text
+		}
+		padding := width - len(text)
+		left := padding / 2
+		right := padding - left
+		return fmt.Sprintf("%s%s%s", strings.Repeat(" ", left), text, strings.Repeat(" ", right))
+	}
