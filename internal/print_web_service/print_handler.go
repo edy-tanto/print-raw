@@ -55,7 +55,6 @@ type PrintCashRefundRequestBody struct {
 type KitchenDetail struct {
 	Item    string  `json:"item"`
 	Qty     uint  	`json:"qty"`
-	Note    string  `json:"note"`
 }
 
 type Kitchen struct {
@@ -71,6 +70,28 @@ type Kitchen struct {
 
 type PrintKitchenRequestBody struct {
 	Kitchen 	Kitchen		`json:"kitchen"`
+}
+
+type TableCheckDetail struct {
+	Item    string  `json:"item"`
+	Qty     uint  	`json:"qty"`
+}
+
+type TableCheck struct {
+	Id						uint				`json:"id"`
+	Op						string				`json:"op"`
+	Code					string				`json:"code"`
+	CustomerName			string				`json:"customer_name"`
+	TableNumber      		string        		`json:"table_number"`
+	CustomerAdultCount		uint				`json:"customer_adult_count"`
+	CustomerChildCount		uint				`json:"customer_child_count"`
+	TotalQty				uint				`json:"total_qty"`
+	Date           			string             	`json:"date"`
+	TableCheckDetails		[]TableCheckDetail 	`json:"table_check_details"`
+}
+
+type PrintTableCheckRequestBody struct {
+	TableCheck 		TableCheck		`json:"table_check"`
 }
 
 type PrintHandler struct{}
@@ -177,6 +198,42 @@ func (h * PrintKitchenHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 	}
 
 	ExecutePrintKitchen(printReqBody)
+
+	json.NewEncoder(w).Encode(printReqBody)
+}
+
+type PrintTableCheckHandler struct{}
+
+func (h * PrintTableCheckHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Methods", "OPTIONS, GET, POST, PUT")
+	w.Header().Set("Access-Control-Allow-Headers", "Content-Type, X-CSRF-Token")
+
+	if r.Method == http.MethodOptions {
+		// handle preflight request
+		w.WriteHeader(http.StatusNoContent)
+		w.Write([]byte{})
+		return
+	}
+
+	if r.Method != http.MethodPost {
+		w.WriteHeader(http.StatusNotFound)
+		w.Write([]byte("not found"))
+		return
+	}
+
+	var printReqBody PrintTableCheckRequestBody
+	err := json.NewDecoder(r.Body).Decode(&printReqBody)
+
+	if err != nil {
+		fmt.Println(err.Error())
+
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte("internal server error"))
+		return
+	}
+
+	ExecutePrintTableCheck(printReqBody)
 
 	json.NewEncoder(w).Encode(printReqBody)
 }
@@ -423,6 +480,59 @@ func ExecutePrintKitchen(body PrintKitchenRequestBody) {
 	localTime := parsedTime.In(time.Local)
 	date := fmt.Sprintf("%-10s %-20s\n", "Printed:", localTime.Format("02/01/2006 15:04:05"))
 	data = append(data, []byte(date)...)
+
+	// Footer
+	data = append(data, 0x1B, 0x64, 0x04) // Feed 4 lines
+	data = append(data, 0x1D, 0x56, 0x00) // Full cut
+
+	driver_windows.Print(data)
+}
+
+func ExecutePrintTableCheck(body PrintTableCheckRequestBody) {
+	// ESC/POS commands
+	data := []byte{
+		0x1B, 0x40,       // Initialize printer
+		0x1B, 0x61, 0x00, // Left Allignment
+	}
+
+	data = append(data, []byte(strings.Repeat("=", 48))...)
+
+	// Header
+	codeWithOp := fmt.Sprintf("%-6s %-15s %-8s %-14s\n", "CO:", body.TableCheck.Code, "Waitress:", body.TableCheck.Op)
+	data = append(data, []byte(codeWithOp)...)
+	tableNumberWithCustomerCount := fmt.Sprintf("%-6s %-15s %-13s %-2d/ %-2d\n", "Table:", body.TableCheck.TableNumber, "#Adult/#Child:", body.TableCheck.CustomerAdultCount, body.TableCheck.CustomerChildCount)
+	data = append(data, []byte(tableNumberWithCustomerCount)...)
+	customerName := fmt.Sprintf("%-6s %-15s\n", "Guest Name:", body.TableCheck.CustomerName)
+	data = append(data, []byte(customerName)...)
+
+	// Content
+	data = append(data, []byte(strings.Repeat("-", 48))...)
+	columnName := fmt.Sprintf("%-30s %-14s\n", "Product", "Qty")
+	data = append(data, []byte(columnName)...)
+	data = append(data, []byte(strings.Repeat("-", 48))...)
+
+	for _, detail := range body.TableCheck.TableCheckDetails {
+		detailText := fmt.Sprintf(
+			"%-30s %-14d\n",
+			detail.Item,
+			detail.Qty,
+		)
+		data = append(data, []byte(detailText)...)
+	}
+	data = append(data, []byte(strings.Repeat("-", 48))...)
+	totalQty := fmt.Sprintf("%-10s %-15d\n", "Quantity:", body.TableCheck.TotalQty)
+	data = append(data, []byte(totalQty)...)
+
+	data = append(data, 0x1D, 0x21, 0x00) // Reset to normal size
+
+	data = append(data, []byte("\n\n")...)
+
+	parsedTime, _ := time.Parse(time.RFC3339Nano, body.TableCheck.Date)
+	localTime := parsedTime.In(time.Local)
+	postingDate := fmt.Sprintf("%-10s %-20s\n", "Posting Date:", localTime.Format("02/01/2006 15:04:05"))
+	data = append(data, []byte(postingDate)...)
+	printedWithAuditDate := fmt.Sprintf("%-8s %-20s %-5s %-17s\n", "Printed:", localTime.Format("02/01/2006 15:04:05"), "Audit:", localTime.Format("02/01/2006"))
+	data = append(data, []byte(printedWithAuditDate)...)
 
 	// Footer
 	data = append(data, 0x1B, 0x64, 0x04) // Feed 4 lines
