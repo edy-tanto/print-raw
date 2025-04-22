@@ -64,7 +64,8 @@ type Kitchen struct {
 	Outlet				string				`json:"outlet"`
 	CustomerName		string				`json:"customer_name"`
 	TableNumber      	string        		`json:"table_number"`
-	Date           string             		`json:"date"`
+	Date           		string             	`json:"date"`
+	IsPrintAsCopy    	bool          		`json:"is_print_as_copy"`
 	KitchenDetails		[]KitchenDetail 	`json:"kitchen_details"`
 }
 
@@ -87,6 +88,7 @@ type TableCheck struct {
 	CustomerChildCount		uint				`json:"customer_child_count"`
 	TotalQty				uint				`json:"total_qty"`
 	Date           			string             	`json:"date"`
+	IsPrintAsCopy    		bool          		`json:"is_print_as_copy"`
 	TableCheckDetails		[]TableCheckDetail 	`json:"table_check_details"`
 }
 
@@ -114,6 +116,7 @@ type CaptainOrderBill struct {
 	TotalNet					uint						`json:"total_net"`
 	GrandTotal					uint						`json:"grand_total"`
 	Date           				string             			`json:"date"`
+	IsPrintAsCopy    			bool          				`json:"is_print_as_copy"`
 	CaptainOrderBillDetails		[]CaptainOrderBillDetail 	`json:"captain_order_bill_details"`
 }
 
@@ -504,6 +507,17 @@ func ExecutePrintKitchen(body PrintKitchenRequestBody) {
 		0x1B, 0x61, 0x00, // Left Allignment
 	}
 
+	if body.Kitchen.IsPrintAsCopy == true {
+		data = append(data, 0x1B, 0x61, 0x01) // Center alignment
+		data = append(data, 0x1D, 0x21, 0x22) // height 3 width 3
+
+		data = append(data, []byte("SALINAN")...)
+
+		data = append(data, 0x1D, 0x21, 0x00) // Reset to normal size
+		data = append(data, 0x1B, 0x61, 0x00) // Left alignment
+		data = append(data, []byte("\n\n")...)
+	}
+
 	data = append(data, []byte(strings.Repeat("-", 48))...)
 
 	// Header
@@ -558,6 +572,17 @@ func ExecutePrintTableCheck(body PrintTableCheckRequestBody) {
 		0x1B, 0x61, 0x00, // Left Allignment
 	}
 
+	if body.TableCheck.IsPrintAsCopy == true {
+		data = append(data, 0x1B, 0x61, 0x01) // Center alignment
+		data = append(data, 0x1D, 0x21, 0x22) // height 3 width 3
+
+		data = append(data, []byte("SALINAN")...)
+
+		data = append(data, 0x1D, 0x21, 0x00) // Reset to normal size
+		data = append(data, 0x1B, 0x61, 0x00) // Left alignment
+		data = append(data, []byte("\n\n")...)
+	}
+
 	data = append(data, []byte(strings.Repeat("=", 48))...)
 
 	// Header
@@ -610,6 +635,18 @@ func ExecutePrintCaptainOrderBill(body PrintCaptainOrderBillRequestBody) {
 		0x1B, 0x40,       // Initialize printer
 		0x1B, 0x61, 0x00, // Left Allignment
 	}
+
+	if body.CaptainOrderBill.IsPrintAsCopy == true {
+		data = append(data, 0x1B, 0x61, 0x01) // Center alignment
+		data = append(data, 0x1D, 0x21, 0x22) // height 3 width 3
+
+		data = append(data, []byte("SALINAN")...)
+
+		data = append(data, 0x1D, 0x21, 0x00) // Reset to normal size
+		data = append(data, 0x1B, 0x61, 0x00) // Left alignment
+		data = append(data, []byte("\n\n")...)
+	}
+
 
 	data = append(data, []byte(strings.Repeat("=", 48))...)
 
