@@ -512,6 +512,7 @@ func ExecutePrintKitchen(body PrintKitchenRequestBody) {
 		data = append(data, 0x1D, 0x21, 0x22) // height 3 width 3
 
 		data = append(data, []byte("SALINAN")...)
+		data = append(data, []byte("\n\n")...)
 
 		data = append(data, 0x1D, 0x21, 0x00) // Reset to normal size
 		data = append(data, 0x1B, 0x61, 0x00) // Left alignment
@@ -577,6 +578,7 @@ func ExecutePrintTableCheck(body PrintTableCheckRequestBody) {
 		data = append(data, 0x1D, 0x21, 0x22) // height 3 width 3
 
 		data = append(data, []byte("SALINAN")...)
+		data = append(data, []byte("\n\n")...)
 
 		data = append(data, 0x1D, 0x21, 0x00) // Reset to normal size
 		data = append(data, 0x1B, 0x61, 0x00) // Left alignment
@@ -641,6 +643,7 @@ func ExecutePrintCaptainOrderBill(body PrintCaptainOrderBillRequestBody) {
 		data = append(data, 0x1D, 0x21, 0x22) // height 3 width 3
 
 		data = append(data, []byte("SALINAN")...)
+		data = append(data, []byte("\n\n")...)
 
 		data = append(data, 0x1D, 0x21, 0x00) // Reset to normal size
 		data = append(data, 0x1B, 0x61, 0x00) // Left alignment
