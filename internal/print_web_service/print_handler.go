@@ -63,7 +63,7 @@ type Kitchen struct {
 	Code				string				`json:"code"`
 	Outlet				string				`json:"outlet"`
 	CustomerName		string				`json:"customer_name"`
-	TableNumber      	string        		`json:"table_number"`
+	TableOrRoomNumber   string        		`json:"table_or_room_number"`
 	Date           		string             	`json:"date"`
 	IsPrintAsCopy    	bool          		`json:"is_print_as_copy"`
 	KitchenDetails		[]KitchenDetail 	`json:"kitchen_details"`
@@ -83,7 +83,7 @@ type TableCheck struct {
 	Op						string				`json:"op"`
 	Code					string				`json:"code"`
 	CustomerName			string				`json:"customer_name"`
-	TableNumber      		string        		`json:"table_number"`
+	TableOrRoomNumber   	string        		`json:"table_or_room_number"`
 	CustomerAdultCount		uint				`json:"customer_adult_count"`
 	CustomerChildCount		uint				`json:"customer_child_count"`
 	TotalQty				uint				`json:"total_qty"`
@@ -107,7 +107,7 @@ type CaptainOrderBill struct {
 	Op							string						`json:"op"`
 	Code						string						`json:"code"`
 	CustomerName				string						`json:"customer_name"`
-	TableNumber      			string        				`json:"table_number"`
+	TableOrRoomNumber   		string        				`json:"table_or_room_number"`
 	CustomerAdultCount			uint						`json:"customer_adult_count"`
 	CustomerChildCount			uint						`json:"customer_child_count"`
 	TotalQty					uint						`json:"total_qty"`
@@ -507,6 +507,22 @@ func ExecutePrintKitchen(body PrintKitchenRequestBody) {
 		0x1B, 0x61, 0x00, // Left Allignment
 	}
 
+	data = append(data, []byte(strings.Repeat("-", 48))...)
+
+	// Header
+	codeWithOutlet := fmt.Sprintf("%-14s : %-15s %10s\n", "CO ID", body.Kitchen.Code, body.Kitchen.Outlet)
+	data = append(data, []byte(codeWithOutlet)...)
+	op := fmt.Sprintf("%-14s : %-20s\n", "Waitress", body.Kitchen.Op)
+	data = append(data, []byte(op)...)
+	tableNumber := fmt.Sprintf("%-14s : %-20s\n", "Table/Room", body.Kitchen.TableOrRoomNumber)
+	data = append(data, []byte(tableNumber)...)
+	customerName := fmt.Sprintf("%-14s : %-20s\n", "Table Number", body.Kitchen.CustomerName)
+	data = append(data, []byte(customerName)...)
+	location := fmt.Sprintf("%-14s : %-20s\n", "Location", "Kitchen")
+	data = append(data, []byte(location)...)
+
+	data = append(data, []byte("\n\n")...)
+
 	if body.Kitchen.IsPrintAsCopy == true {
 		data = append(data, 0x1B, 0x61, 0x01) // Center alignment
 		data = append(data, 0x1D, 0x21, 0x22) // height 3 width 3
@@ -518,20 +534,6 @@ func ExecutePrintKitchen(body PrintKitchenRequestBody) {
 		data = append(data, 0x1B, 0x61, 0x00) // Left alignment
 		data = append(data, []byte("\n\n")...)
 	}
-
-	data = append(data, []byte(strings.Repeat("-", 48))...)
-
-	// Header
-	codeWithOutlet := fmt.Sprintf("%-14s : %-15s %10s\n", "CO ID", body.Kitchen.Code, body.Kitchen.Outlet)
-	data = append(data, []byte(codeWithOutlet)...)
-	op := fmt.Sprintf("%-14s : %-20s\n", "Waitress", body.Kitchen.Op)
-	data = append(data, []byte(op)...)
-	tableNumber := fmt.Sprintf("%-14s : %-20s\n", "Table Number", body.Kitchen.TableNumber)
-	data = append(data, []byte(tableNumber)...)
-	customerName := fmt.Sprintf("%-14s : %-20s\n", "Table Number", body.Kitchen.CustomerName)
-	data = append(data, []byte(customerName)...)
-	location := fmt.Sprintf("%-14s : %-20s\n", "Location", "Kitchen")
-	data = append(data, []byte(location)...)
 
 	// Content
 	data = append(data, []byte(strings.Repeat("-", 48))...)
@@ -573,6 +575,18 @@ func ExecutePrintTableCheck(body PrintTableCheckRequestBody) {
 		0x1B, 0x61, 0x00, // Left Allignment
 	}
 
+	data = append(data, []byte(strings.Repeat("=", 48))...)
+
+	// Header
+	codeWithOp := fmt.Sprintf("%-6s %-15s %-8s %-14s\n", "CO:", body.TableCheck.Code, "Waitress:", body.TableCheck.Op)
+	data = append(data, []byte(codeWithOp)...)
+	tableNumberWithCustomerCount := fmt.Sprintf("%-6s %-15s %-13s %-2d/ %-2d\n", "Table/Room:", body.TableCheck.TableOrRoomNumber, "#Adult/#Child:", body.TableCheck.CustomerAdultCount, body.TableCheck.CustomerChildCount)
+	data = append(data, []byte(tableNumberWithCustomerCount)...)
+	customerName := fmt.Sprintf("%-6s %-15s\n", "Guest Name:", body.TableCheck.CustomerName)
+	data = append(data, []byte(customerName)...)
+
+	data = append(data, []byte("\n\n")...)
+
 	if body.TableCheck.IsPrintAsCopy == true {
 		data = append(data, 0x1B, 0x61, 0x01) // Center alignment
 		data = append(data, 0x1D, 0x21, 0x22) // height 3 width 3
@@ -584,16 +598,6 @@ func ExecutePrintTableCheck(body PrintTableCheckRequestBody) {
 		data = append(data, 0x1B, 0x61, 0x00) // Left alignment
 		data = append(data, []byte("\n\n")...)
 	}
-
-	data = append(data, []byte(strings.Repeat("=", 48))...)
-
-	// Header
-	codeWithOp := fmt.Sprintf("%-6s %-15s %-8s %-14s\n", "CO:", body.TableCheck.Code, "Waitress:", body.TableCheck.Op)
-	data = append(data, []byte(codeWithOp)...)
-	tableNumberWithCustomerCount := fmt.Sprintf("%-6s %-15s %-13s %-2d/ %-2d\n", "Table:", body.TableCheck.TableNumber, "#Adult/#Child:", body.TableCheck.CustomerAdultCount, body.TableCheck.CustomerChildCount)
-	data = append(data, []byte(tableNumberWithCustomerCount)...)
-	customerName := fmt.Sprintf("%-6s %-15s\n", "Guest Name:", body.TableCheck.CustomerName)
-	data = append(data, []byte(customerName)...)
 
 	// Content
 	data = append(data, []byte(strings.Repeat("-", 48))...)
@@ -638,6 +642,18 @@ func ExecutePrintCaptainOrderBill(body PrintCaptainOrderBillRequestBody) {
 		0x1B, 0x61, 0x00, // Left Allignment
 	}
 
+	data = append(data, []byte(strings.Repeat("=", 48))...)
+
+	// Header
+	codeWithOp := fmt.Sprintf("%-6s %-15s %-8s %-14s\n", "CO:", body.CaptainOrderBill.Code, "Waitress:", body.CaptainOrderBill.Op)
+	data = append(data, []byte(codeWithOp)...)
+	tableNumberWithCustomerCount := fmt.Sprintf("%-6s %-15s %-13s %-2d/ %-2d\n", "Table/Room:", body.CaptainOrderBill.TableOrRoomNumber, "#Adult/#Child:", body.CaptainOrderBill.CustomerAdultCount, body.CaptainOrderBill.CustomerChildCount)
+	data = append(data, []byte(tableNumberWithCustomerCount)...)
+	customerName := fmt.Sprintf("%-6s %-15s\n", "Guest Name:", body.CaptainOrderBill.CustomerName)
+	data = append(data, []byte(customerName)...)
+
+	data = append(data, []byte("\n\n")...)
+
 	if body.CaptainOrderBill.IsPrintAsCopy == true {
 		data = append(data, 0x1B, 0x61, 0x01) // Center alignment
 		data = append(data, 0x1D, 0x21, 0x22) // height 3 width 3
@@ -649,17 +665,6 @@ func ExecutePrintCaptainOrderBill(body PrintCaptainOrderBillRequestBody) {
 		data = append(data, 0x1B, 0x61, 0x00) // Left alignment
 		data = append(data, []byte("\n\n")...)
 	}
-
-
-	data = append(data, []byte(strings.Repeat("=", 48))...)
-
-	// Header
-	codeWithOp := fmt.Sprintf("%-6s %-15s %-8s %-14s\n", "CO:", body.CaptainOrderBill.Code, "Waitress:", body.CaptainOrderBill.Op)
-	data = append(data, []byte(codeWithOp)...)
-	tableNumberWithCustomerCount := fmt.Sprintf("%-6s %-15s %-13s %-2d/ %-2d\n", "Table:", body.CaptainOrderBill.TableNumber, "#Adult/#Child:", body.CaptainOrderBill.CustomerAdultCount, body.CaptainOrderBill.CustomerChildCount)
-	data = append(data, []byte(tableNumberWithCustomerCount)...)
-	customerName := fmt.Sprintf("%-6s %-15s\n", "Guest Name:", body.CaptainOrderBill.CustomerName)
-	data = append(data, []byte(customerName)...)
 
 	// Content
 	data = append(data, []byte(strings.Repeat("-", 48))...)
