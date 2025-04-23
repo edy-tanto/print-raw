@@ -532,7 +532,6 @@ func ExecutePrintKitchen(body PrintKitchenRequestBody) {
 
 		data = append(data, 0x1D, 0x21, 0x00) // Reset to normal size
 		data = append(data, 0x1B, 0x61, 0x00) // Left alignment
-		data = append(data, []byte("\n\n")...)
 	}
 
 	// Content
@@ -580,8 +579,8 @@ func ExecutePrintTableCheck(body PrintTableCheckRequestBody) {
 	// Header
 	codeWithOp := fmt.Sprintf("%-6s %-15s %-8s %-14s\n", "CO:", body.TableCheck.Code, "Waitress:", body.TableCheck.Op)
 	data = append(data, []byte(codeWithOp)...)
-	tableNumberWithCustomerCount := fmt.Sprintf("%-6s %-15s %-13s %-2d/ %-2d\n", "Table/Room:", body.TableCheck.TableOrRoomNumber, "#Adult/#Child:", body.TableCheck.CustomerAdultCount, body.TableCheck.CustomerChildCount)
-	data = append(data, []byte(tableNumberWithCustomerCount)...)
+	tableOrRoomNumberWithCustomerCount := fmt.Sprintf("%-6s %-10s %-13s %-2d/ %-2d\n", "Table/Room:", body.TableCheck.TableOrRoomNumber, "#Adult/#Child:", body.TableCheck.CustomerAdultCount, body.TableCheck.CustomerChildCount)
+	data = append(data, []byte(tableOrRoomNumberWithCustomerCount)...)
 	customerName := fmt.Sprintf("%-6s %-15s\n", "Guest Name:", body.TableCheck.CustomerName)
 	data = append(data, []byte(customerName)...)
 
@@ -596,7 +595,6 @@ func ExecutePrintTableCheck(body PrintTableCheckRequestBody) {
 
 		data = append(data, 0x1D, 0x21, 0x00) // Reset to normal size
 		data = append(data, 0x1B, 0x61, 0x00) // Left alignment
-		data = append(data, []byte("\n\n")...)
 	}
 
 	// Content
@@ -647,8 +645,8 @@ func ExecutePrintCaptainOrderBill(body PrintCaptainOrderBillRequestBody) {
 	// Header
 	codeWithOp := fmt.Sprintf("%-6s %-15s %-8s %-14s\n", "CO:", body.CaptainOrderBill.Code, "Waitress:", body.CaptainOrderBill.Op)
 	data = append(data, []byte(codeWithOp)...)
-	tableNumberWithCustomerCount := fmt.Sprintf("%-6s %-15s %-13s %-2d/ %-2d\n", "Table/Room:", body.CaptainOrderBill.TableOrRoomNumber, "#Adult/#Child:", body.CaptainOrderBill.CustomerAdultCount, body.CaptainOrderBill.CustomerChildCount)
-	data = append(data, []byte(tableNumberWithCustomerCount)...)
+	tableOrRoomNumberWithCustomerCount := fmt.Sprintf("%-6s %-10s %-13s %-2d/ %-2d\n", "Table/Room:", body.CaptainOrderBill.TableOrRoomNumber, "#Adult/#Child:", body.CaptainOrderBill.CustomerAdultCount, body.CaptainOrderBill.CustomerChildCount)
+	data = append(data, []byte(tableOrRoomNumberWithCustomerCount)...)
 	customerName := fmt.Sprintf("%-6s %-15s\n", "Guest Name:", body.CaptainOrderBill.CustomerName)
 	data = append(data, []byte(customerName)...)
 
@@ -663,7 +661,6 @@ func ExecutePrintCaptainOrderBill(body PrintCaptainOrderBillRequestBody) {
 
 		data = append(data, 0x1D, 0x21, 0x00) // Reset to normal size
 		data = append(data, 0x1B, 0x61, 0x00) // Left alignment
-		data = append(data, []byte("\n\n")...)
 	}
 
 	// Content
@@ -748,19 +745,19 @@ func formatDatetime(dateString string) string {
 	return formattedDate
 }
 
-	func centerInParentheses(text string, width int) string {
-		padding := width - len(text)
-		left := padding / 2
-		right := padding - left
-		return fmt.Sprintf("(%s%s%s)", strings.Repeat(" ", left), text, strings.Repeat(" ", right))
-	}
+func centerInParentheses(text string, width int) string {
+	padding := width - len(text)
+	left := padding / 2
+	right := padding - left
+	return fmt.Sprintf("(%s%s%s)", strings.Repeat(" ", left), text, strings.Repeat(" ", right))
+}
 
-	func centerText(text string, width int) string {
-		if len(text) >= width {
-			return text
-		}
-		padding := width - len(text)
-		left := padding / 2
-		right := padding - left
-		return fmt.Sprintf("%s%s%s", strings.Repeat(" ", left), text, strings.Repeat(" ", right))
+func centerText(text string, width int) string {
+	if len(text) >= width {
+		return text
 	}
+	padding := width - len(text)
+	left := padding / 2
+	right := padding - left
+	return fmt.Sprintf("%s%s%s", strings.Repeat(" ", left), text, strings.Repeat(" ", right))
+}
