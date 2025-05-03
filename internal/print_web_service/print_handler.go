@@ -7,6 +7,9 @@ import (
 	"net/http"
 	"strings"
 	"time"
+
+	"golang.org/x/text/language"
+	"golang.org/x/text/message"
 )
 
 type SalesDetail struct {
@@ -97,9 +100,9 @@ type PrintTableCheckRequestBody struct {
 }
 
 type CaptainOrderBillDetail struct {
-	Item    	string  `json:"item"`
-	Qty     	uint  	`json:"qty"`
-	Subtotal    uint  	`json:"subtotal"`
+	Item    	string  	`json:"item"`
+	Qty     	uint  		`json:"qty"`
+	Subtotal    float32  	`json:"subtotal"`
 }
 
 type CaptainOrderBill struct {
@@ -111,10 +114,10 @@ type CaptainOrderBill struct {
 	CustomerAdultCount			uint						`json:"customer_adult_count"`
 	CustomerChildCount			uint						`json:"customer_child_count"`
 	TotalQty					uint						`json:"total_qty"`
-	DiscountAmount				uint						`json:"discount_amount"`
-	TotalGross					uint						`json:"total_gross"`
-	TotalNet					uint						`json:"total_net"`
-	GrandTotal					uint						`json:"grand_total"`
+	DiscountAmount				float32						`json:"discount_amount"`
+	TotalGross					float32						`json:"total_gross"`
+	TotalNet					float32						`json:"total_net"`
+	GrandTotal					float32						`json:"grand_total"`
 	Date           				string             			`json:"date"`
 	IsPrintAsCopy    			bool          				`json:"is_print_as_copy"`
 	CaptainOrderBillDetails		[]CaptainOrderBillDetail 	`json:"captain_order_bill_details"`
@@ -382,12 +385,12 @@ func ExecutePrint(body PrintRequestBody) {
 	for _, detail := range body.Sales.SalesDetails {
 		// TODO: handle if item name to long, solution new line or truncate at the last
 		detailText := fmt.Sprintf(
-			"%-20s %-1s %3d %-6s %14.0f\n",
+			"%-20s %-1s %3d %-6s %14s\n",
 			detail.Item,
 			" ",
 			detail.Qty,
 			" ",
-			detail.Subtotal,
+			formatMoney(detail.Subtotal),
 		)
 		data = append(data, []byte(detailText)...)
 	}
@@ -398,7 +401,7 @@ func ExecutePrint(body PrintRequestBody) {
 
 	data = append(data, 0x1D, 0x21, 0x11) // Double height
 
-	grandTotal := fmt.Sprintf("%-9s %14.0f\n", "Total", body.Sales.GrandTotal)
+	grandTotal := fmt.Sprintf("%-9s %14s\n", "Total", formatMoney(body.Sales.GrandTotal))
 	data = append(data, []byte(grandTotal)...)
 
 	data = append(data, 0x1D, 0x21, 0x00) // Reset to normal size
@@ -472,12 +475,12 @@ func ExecutePrintCashRefund(body PrintCashRefundRequestBody) {
 	for _, detail := range body.CashRefund.CashRefundDetails {
 		// TODO: handle if item name to long, solution new line or truncate at the last
 		detailText := fmt.Sprintf(
-			"%-20s %-1s %3d %-6s %14.0f\n",
+			"%-20s %-1s %3d %-6s %14s\n",
 			detail.Item,
 			" ",
 			detail.Qty,
 			" ",
-			detail.Subtotal,
+			formatMoney(detail.Subtotal),
 		)
 		data = append(data, []byte(detailText)...)
 	}
@@ -487,7 +490,7 @@ func ExecutePrintCashRefund(body PrintCashRefundRequestBody) {
 	// Summary
 	data = append(data, 0x1D, 0x21, 0x11) // Double height
 
-	grandTotal := fmt.Sprintf("%-9s %14.0f\n", "Total", body.CashRefund.TotalRefund)
+	grandTotal := fmt.Sprintf("%-9s %14s\n", "Total", formatMoney(body.CashRefund.TotalRefund))
 	data = append(data, []byte(grandTotal)...)
 
 	data = append(data, 0x1D, 0x21, 0x00) // Reset to normal size
@@ -671,23 +674,23 @@ func ExecutePrintCaptainOrderBill(body PrintCaptainOrderBillRequestBody) {
 
 	for _, detail := range body.CaptainOrderBill.CaptainOrderBillDetails {
 		detailText := fmt.Sprintf(
-			"%-25s %-8d %-10d\n",
+			"%-25s %-8d %-10s\n",
 			detail.Item,
 			detail.Qty,
-			detail.Subtotal,
+			formatMoney(detail.Subtotal),
 		)
 		data = append(data, []byte(detailText)...)
 	}
 	data = append(data, []byte(strings.Repeat("-", 48))...)
-	totalQtyWithSubtotal := fmt.Sprintf("%20s %-4d %8s %-10d\n", "Quantity:", body.CaptainOrderBill.TotalQty, "Subtotal", body.CaptainOrderBill.TotalGross)
+	totalQtyWithSubtotal := fmt.Sprintf("%20s %-4d %8s %-10s\n", "Quantity:", body.CaptainOrderBill.TotalQty, "Subtotal", formatMoney(body.CaptainOrderBill.TotalGross))
 	data = append(data, []byte(totalQtyWithSubtotal)...)
-	discountAmount := fmt.Sprintf("%34s %-4d\n", "Discount", body.CaptainOrderBill.DiscountAmount)
+	discountAmount := fmt.Sprintf("%34s %-4s\n", "Discount", formatMoney(body.CaptainOrderBill.DiscountAmount))
 	data = append(data, []byte(discountAmount)...)
 
 	separator := fmt.Sprintf("%40s\n", "-----------------------")
 	data = append(data, []byte(separator)...)
 
-	grandTotal := fmt.Sprintf("%34s %-4d\n", "Grand Total", body.CaptainOrderBill.TotalNet)
+	grandTotal := fmt.Sprintf("%34s %-4s\n", "Grand Total", formatMoney(body.CaptainOrderBill.TotalNet))
 	data = append(data, []byte(grandTotal)...)
 
 	data = append(data, []byte("\n\n")...)
@@ -760,4 +763,9 @@ func centerText(text string, width int) string {
 	left := padding / 2
 	right := padding - left
 	return fmt.Sprintf("%s%s%s", strings.Repeat(" ", left), text, strings.Repeat(" ", right))
+}
+
+func formatMoney(amount float32) string {
+	p := message.NewPrinter(language.MustParse("id"))
+	return p.Sprintf("%.0f", amount)
 }
