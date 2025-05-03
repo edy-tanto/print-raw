@@ -1,14 +1,15 @@
 package main
 
 import (
-	"edy-tanto/printer-pos/internal/print_web_service"
+	"edy-tanto/printer-pos/internal/print_web_service/dto"
+	"edy-tanto/printer-pos/internal/print_web_service/printer"
 )
 
 func main() {
 	footnote := "I acknowledge and agree that\nINSURANCE COVERAGE IS UP TO 60 YEARS OLD\nCertain accident risk not guaranteed\nChildren under 12 y/o is not permitted to enter without\nsupervision\nSwimwear is compulsory in water facility\nNo food and drink from outside\nNo drug or weapon/dangerous subtance"
 
-	body := print_web_service.PrintRequestBody{
-		Sales: print_web_service.Sales{
+	body := dto.PrintRequestBody{
+		Sales: dto.Sales{
 			Id:               1,
 			UnitBusinessName: "ParadisQ",
 			Code:             "#LC0551",
@@ -19,12 +20,12 @@ func main() {
 			GrandTotal:       607000,
 			IsPrintAsCopy:    true,
 			Footnote:         footnote,
-			SalesDetails: []print_web_service.SalesDetail{
+			SalesDetails: []dto.SalesDetail{
 				{Item: "Gelang", Qty: 5, Subtotal: 125000},
 				{Item: "CashQ", Qty: 1, Subtotal: 500000},
 			},
 		},
 	}
 
-	print_web_service.ExecutePrint(body)
+	printer.ExecutePrint(body)
 }
