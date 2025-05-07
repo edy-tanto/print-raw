@@ -5,7 +5,6 @@ import (
 	"edy-tanto/printer-pos/internal/print_web_service/dto"
 	"edy-tanto/printer-pos/internal/print_web_service/utils"
 	"fmt"
-	"log"
 	"strings"
 )
 
@@ -125,13 +124,10 @@ func ExecutePrint(body dto.PrintRequestBody) {
 
 		switch body.Sales.FootnoteAlign {
 		case string(FootnoteAlignCenter):
-			log.Println("Footnote aligned to CENTER")
 			data = append(data, 0x1B, 0x61, 0x01)
 		case string(FootnoteAlignRight):
-			log.Println("Footnote aligned to RIGHT")
 			data = append(data, 0x1B, 0x61, 0x02)
 		default: // FootnoteAlignLeft or unknown
-			log.Println("Footnote aligned to LEFT (default)")
 			data = append(data, 0x1B, 0x61, 0x00)
 		}
 
