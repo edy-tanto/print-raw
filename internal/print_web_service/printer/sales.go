@@ -5,7 +5,16 @@ import (
 	"edy-tanto/printer-pos/internal/print_web_service/dto"
 	"edy-tanto/printer-pos/internal/print_web_service/utils"
 	"fmt"
+	"log"
 	"strings"
+)
+
+type FootnoteAlignEnum string
+
+const (
+	FootnoteAlignLeft   FootnoteAlignEnum = "LEFT"
+	FootnoteAlignCenter FootnoteAlignEnum = "CENTER"
+	FootnoteAlignRight  FootnoteAlignEnum = "RIGHT"
 )
 
 func ExecutePrint(body dto.PrintRequestBody) {
@@ -112,8 +121,20 @@ func ExecutePrint(body dto.PrintRequestBody) {
 		data = append(data, []byte("\n")...)
 		data = append(data, []byte(strings.Repeat("-", 48))...)
 		data = append(data, 0x1B, 0x4D, 0x01) // Change font
-
 		data = append(data, []byte("\n\n")...)
+
+		switch body.Sales.FootnoteAlign {
+		case string(FootnoteAlignCenter):
+			log.Println("Footnote aligned to CENTER")
+			data = append(data, 0x1B, 0x61, 0x01)
+		case string(FootnoteAlignRight):
+			log.Println("Footnote aligned to RIGHT")
+			data = append(data, 0x1B, 0x61, 0x02)
+		default: // FootnoteAlignLeft or unknown
+			log.Println("Footnote aligned to LEFT (default)")
+			data = append(data, 0x1B, 0x61, 0x00)
+		}
+
 		data = append(data, []byte(body.Sales.Footnote)...)
 	}
 
