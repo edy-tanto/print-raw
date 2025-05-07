@@ -1,4 +1,4 @@
-package main
+package driver_windows
 
 import (
 	"encoding/json"

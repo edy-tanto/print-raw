@@ -1,4 +1,7 @@
-package main
+//go:build windows
+// +build windows
+
+package driver_windows
 
 import (
 	"fmt"
@@ -6,11 +9,10 @@ import (
 	"syscall"
 	"unsafe"
 
-	"github.com/nfnt/resize" // For resizing the image
-	"golang.org/x/image/bmp" // Correct import for BMP decoding
+	"github.com/nfnt/resize"
+	"golang.org/x/image/bmp"
 )
 
-// Windows API functions from winspool.drv
 var (
 	winspool        = syscall.NewLazyDLL("winspool.drv")
 	openPrinter     = winspool.NewProc("OpenPrinterW")
@@ -20,14 +22,13 @@ var (
 	writePrinter    = winspool.NewProc("WritePrinter")
 )
 
-// DOC_INFO_1 structure
 type DOC_INFO_1 struct {
 	pDocName    *uint16
 	pOutputFile *uint16
 	pDatatype   *uint16
 }
 
-func imageToBytes(filePath string, maxWidth int) ([]byte, int, int, error) {
+func ImageToBytes(filePath string, maxWidth int) ([]byte, int, int, error) {
 	// Open the image file
 	file, err := os.Open(filePath)
 	if err != nil {
@@ -65,7 +66,7 @@ func imageToBytes(filePath string, maxWidth int) ([]byte, int, int, error) {
 	return imageData, width, height, nil
 }
 
-func print(data []byte) {
+func Print(data []byte) {
 	// Printer name
 	printerName, err := syscall.UTF16PtrFromString("EPSON TM-T82 Receipt")
 	if err != nil {
