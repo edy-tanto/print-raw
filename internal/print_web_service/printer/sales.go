@@ -99,7 +99,8 @@ func ExecutePrint(body dto.PrintRequestBody) {
 			" ",
 			detail.Qty,
 			" ",
-			utils.FormatMoney(detail.Subtotal),
+
+			utils.FormatMoney(detail.TotalFinal),
 		)
 		data = append(data, []byte(detailText)...)
 	}
