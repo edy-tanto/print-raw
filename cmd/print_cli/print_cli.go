@@ -22,8 +22,8 @@ func main() {
 			Footnote:         footnote,
 			FootnoteAlign:    "CENTER",
 			SalesDetails: []dto.SalesDetail{
-				{Item: "Gelang", Qty: 5, Subtotal: 125000},
-				{Item: "CashQ", Qty: 1, Subtotal: 500000},
+				{Item: "Gelang", Qty: 5, TotalFinal: 125000},
+				{Item: "CashQ", Qty: 1, TotalFinal: 500000},
 			},
 		},
 	}
