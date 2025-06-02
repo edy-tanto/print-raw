@@ -31,17 +31,6 @@ func ExecutePrintKitchen(body dto.PrintKitchenRequestBody) {
 
 	data = append(data, []byte("\n\n")...)
 
-	if body.Kitchen.IsPrintAsCopy == true {
-		data = append(data, 0x1B, 0x61, 0x01) // Center alignment
-		data = append(data, 0x1D, 0x21, 0x22) // height 3 width 3
-
-		data = append(data, []byte("SALINAN")...)
-		data = append(data, []byte("\n\n")...)
-
-		data = append(data, 0x1D, 0x21, 0x00) // Reset to normal size
-		data = append(data, 0x1B, 0x61, 0x00) // Left alignment
-	}
-
 	// Content
 	data = append(data, []byte(strings.Repeat("-", 48))...)
 	columnName := fmt.Sprintf("%9s %-25s\n", "Qty", "Product")
