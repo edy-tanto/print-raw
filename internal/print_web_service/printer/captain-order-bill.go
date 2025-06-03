@@ -74,8 +74,10 @@ func ExecutePrintCaptainOrderBill(body dto.PrintCaptainOrderBillRequestBody) {
 	data = append(data, []byte(ccChargeValue)...)
 
 	remarkLabel := fmt.Sprintf("%-35s\n", "Remark:")
+	remark := fmt.Sprintf("%-35s\n", body.CaptainOrderBill.Note)
 	data = append(data, []byte(remarkLabel)...)
-	data = append(data, []byte("\n\n")...)
+	data = append(data, []byte(remark)...)
+	data = append(data, []byte("\n\n\n\n\n")...)
 
 	data = append(data, 0x1B, 0x61, 0x01) // Center alignment
 
