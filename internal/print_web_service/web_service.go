@@ -13,6 +13,7 @@ func NewPrintMuxServer() *http.ServeMux {
 	mux.Handle("/kitchen", &handler.PrintKitchenHandler{})
 	mux.Handle("/table-check", &handler.PrintTableCheckHandler{})
 	mux.Handle("/captain-order-bill", &handler.PrintCaptainOrderBillHandler{})
+	mux.Handle("/captain-order-invoice", &handler.PrintCaptainOrderInvoiceHandler{})
 
 	return mux
 }
