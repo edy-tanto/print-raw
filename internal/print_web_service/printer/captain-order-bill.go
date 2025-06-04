@@ -19,9 +19,9 @@ func ExecutePrintCaptainOrderBill(body dto.PrintCaptainOrderBillRequestBody) {
 	data = append(data, []byte(strings.Repeat("=", 48))...)
 
 	// Header
-	codeWithOp := fmt.Sprintf("%-6s %-15s %-8s %-14s\n", "CO:", body.CaptainOrderBill.Code, "Waitress:", body.CaptainOrderBill.Op)
+	codeWithOp := fmt.Sprintf("%-3s %-22s %9s %10s\n", "CO:", body.CaptainOrderBill.Code, "Waitress:", body.CaptainOrderBill.Op)
 	data = append(data, []byte(codeWithOp)...)
-	tableOrRoomNumberWithCustomerCount := fmt.Sprintf("%-6s %-10s %-13s %-2d/ %-2d\n", "Table/Room:", body.CaptainOrderBill.TableOrRoomNumber, "#Adult/#Child:", body.CaptainOrderBill.CustomerAdultCount, body.CaptainOrderBill.CustomerChildCount)
+	tableOrRoomNumberWithCustomerCount := fmt.Sprintf("%-11s %-14s %-14s %-2d/ %-2d\n", "Table/Room:", body.CaptainOrderBill.TableOrRoomNumber, "#Adult/#Child:", body.CaptainOrderBill.CustomerAdultCount, body.CaptainOrderBill.CustomerChildCount)
 	data = append(data, []byte(tableOrRoomNumberWithCustomerCount)...)
 	customerName := fmt.Sprintf("%-6s %-15s\n", "Guest Name:", body.CaptainOrderBill.CustomerName)
 	data = append(data, []byte(customerName)...)
@@ -41,13 +41,13 @@ func ExecutePrintCaptainOrderBill(body dto.PrintCaptainOrderBillRequestBody) {
 
 	// Content
 	data = append(data, []byte(strings.Repeat("-", 48))...)
-	columnName := fmt.Sprintf("%-25s %-8s %-10s\n", "Product", "Qty", "Subtotal")
+	columnName := fmt.Sprintf("%-20s %8s %18s\n", "Product", "Qty", "Subtotal")
 	data = append(data, []byte(columnName)...)
 	data = append(data, []byte(strings.Repeat("-", 48))...)
 
 	for _, detail := range body.CaptainOrderBill.CaptainOrderBillDetails {
 		detailText := fmt.Sprintf(
-			"%-25s %-8d %-10s\n",
+			"%-20s %8d %18s\n",
 			detail.Item,
 			detail.Qty,
 			utils.FormatMoney(detail.Subtotal),
@@ -55,28 +55,36 @@ func ExecutePrintCaptainOrderBill(body dto.PrintCaptainOrderBillRequestBody) {
 		data = append(data, []byte(detailText)...)
 	}
 	data = append(data, []byte(strings.Repeat("-", 48))...)
-	totalQtyWithSubtotal := fmt.Sprintf("%20s %-4d %8s %-10s\n", "Quantity:", body.CaptainOrderBill.TotalQty, "Subtotal", utils.FormatMoney(body.CaptainOrderBill.TotalGross))
-	data = append(data, []byte(totalQtyWithSubtotal)...)
-	discountAmount := fmt.Sprintf("%34s %-4s\n", "Discount", utils.FormatMoney(body.CaptainOrderBill.DiscountAmount))
+	data = append(data, 0x1B, 0x45, 0x01) // Turn bold on
+	totalQty := fmt.Sprintf("%-9s %-3d %-6s", "Quantity:", body.CaptainOrderBill.TotalQty, " ")
+	data = append(data, []byte(totalQty)...)
+	data = append(data, 0x1B, 0x45, 0x00) // Turn bold off
+	withSubtotal := fmt.Sprintf("%9s %18s\n", "Sub total", utils.FormatMoney(body.CaptainOrderBill.TotalGross))
+	data = append(data, []byte(withSubtotal)...)
+
+	discountAmount := fmt.Sprintf("%-20s %-8s %18s\n", " ", "Discount", utils.FormatMoney(body.CaptainOrderBill.DiscountAmount))
 	data = append(data, []byte(discountAmount)...)
 
-	separator := fmt.Sprintf("%40s\n", "-----------------------")
+	separator := fmt.Sprintf("%48s\n", "--------------------------------")
 	data = append(data, []byte(separator)...)
 
-	grandTotal := fmt.Sprintf("%34s %-4s\n", "Grand Total", utils.FormatMoney(body.CaptainOrderBill.TotalNet))
+	data = append(data, 0x1B, 0x45, 0x01) // Turn bold on
+	grandTotal := fmt.Sprintf("%-17s %11s %18s\n", " ", "Grand Total", utils.FormatMoney(body.CaptainOrderBill.TotalNet))
 	data = append(data, []byte(grandTotal)...)
 
 	data = append(data, []byte("\n\n")...)
 
-	ccChargeLabel := fmt.Sprintf("%-35s\n", "CC Charge:")
+	ccChargeLabel := fmt.Sprintf("%-10s %-5s\n", "CC Charge:", "0,00")
 	data = append(data, []byte(ccChargeLabel)...)
-	ccChargeValue := fmt.Sprintf("%-35s\n", "0")
-	data = append(data, []byte(ccChargeValue)...)
+
+	data = append(data, []byte("\n")...)
 
 	remarkLabel := fmt.Sprintf("%-35s\n", "Remark:")
-	remark := fmt.Sprintf("%-35s\n", body.CaptainOrderBill.Note)
 	data = append(data, []byte(remarkLabel)...)
+	remark := fmt.Sprintf("%-48s\n", body.CaptainOrderBill.Note)
 	data = append(data, []byte(remark)...)
+	data = append(data, 0x1B, 0x45, 0x00) // Turn bold off
+
 	data = append(data, []byte("\n\n\n\n\n")...)
 
 	data = append(data, 0x1B, 0x61, 0x01) // Center alignment
