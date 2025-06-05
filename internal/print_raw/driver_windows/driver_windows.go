@@ -5,8 +5,10 @@ package driver_windows
 
 import (
 	"fmt"
+	"net"
 	"os"
 	"syscall"
+	"time"
 	"unsafe"
 
 	"github.com/nfnt/resize"
@@ -121,6 +123,25 @@ func Print(data []byte) {
 	ret, _, err = endDocPrinter.Call(uintptr(handle))
 	if ret == 0 {
 		fmt.Println("Error ending document:", err)
+		return
+	}
+
+	fmt.Println("Print successful!")
+}
+
+func PrintEth(data []byte, targetPrinter string) {
+	// Dial a TCP connection to the printer
+	conn, err := net.DialTimeout("tcp", targetPrinter, 3*time.Second)
+	if err != nil {
+		fmt.Printf("Failed to connect to printer at %s: %v\n", targetPrinter, err)
+		return
+	}
+	defer conn.Close()
+
+	// Write to printer
+	_, err = conn.Write(data)
+	if err != nil {
+		fmt.Printf("Error writing to printer: %v\n", err)
 		return
 	}
 
