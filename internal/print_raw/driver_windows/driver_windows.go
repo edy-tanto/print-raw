@@ -129,6 +129,7 @@ func Print(data []byte) {
 	fmt.Println("Print successful!")
 }
 
+// Target printer value example "192.168.10.252:9100"
 func PrintEth(data []byte, targetPrinter string) {
 	// Dial a TCP connection to the printer
 	conn, err := net.DialTimeout("tcp", targetPrinter, 3*time.Second)
