@@ -5,17 +5,36 @@ import (
 	"edy-tanto/printer-pos/internal/print_web_service/dto"
 	"edy-tanto/printer-pos/internal/print_web_service/utils"
 	"fmt"
+	"log"
 	"strings"
 	"time"
 )
 
 func ExecutePrintCaptainOrderBill(body dto.PrintCaptainOrderBillRequestBody) {
-	// ESC/POS commands
-	data := []byte{
-		0x1B, 0x40, // Initialize printer
-		0x1B, 0x61, 0x00, // Left Allignment
+	const MAX_WIDTH_IMAGE = 700 // sesuaikan dengan printer
+
+	imageData, widthPixels, heightPixels, err := driver_windows.ImageToBytes("captain-order-receipt-header.bmp", MAX_WIDTH_IMAGE)
+	if err != nil {
+		log.Fatal(err)
 	}
 
+	x := (widthPixels + 7) / 8
+	y := heightPixels
+	xL := byte(x % 256)
+	xH := byte(x / 256)
+	yL := byte(y % 256)
+	yH := byte(y / 256)
+
+	data := []byte{
+		0x1B, 0x40,         // Initialize
+		0x1B, 0x61, 0x00,   // Left alignment
+		0x1D, 0x76, 0x30, 0x00,
+		xL, xH, yL, yH,
+	}
+	data = append(data, imageData...)
+	data = append(data, 0x0A, 0x0A) // Line feed tambahan
+	data = append(data, 0x1D, 0x21, 0x00) // Normal size text
+	data = append(data, 0x1B, 0x61, 0x00) // Kembali ke kiri
 	data = append(data, []byte(strings.Repeat("=", 48))...)
 
 	// Header
