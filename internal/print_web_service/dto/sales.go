@@ -19,6 +19,7 @@ type Sales struct {
 	Footnote         string        `json:"footnote"`
 	FootnoteAlign    string        `json:"footnote_align"`
 	GrandTotal       float32       `json:"grand_total"`
+	CreditCardCharge float32       `json:"credit_card_charge"`
 	SalesDetails     []SalesDetail `json:"sales_details"`
 }
 
