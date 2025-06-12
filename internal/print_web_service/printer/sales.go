@@ -107,11 +107,13 @@ func ExecutePrint(body dto.PrintRequestBody) {
 
 	// Summary
 	data = append(data, 0x1B, 0x61, 0x00) // Left alignment``
-	data = append(data, []byte("\n\n")...)
+	data = append(data, []byte(strings.Repeat("-", 48))...)
+	ccCharge := fmt.Sprintf("%-11s %14s\n\n", "CC Charge :", utils.FormatMoney(body.Sales.CreditCardCharge))
+	data = append(data, []byte(ccCharge)...)
 
 	data = append(data, 0x1D, 0x21, 0x11) // Double height
 
-	grandTotal := fmt.Sprintf("%-9s %14s\n", "Total", utils.FormatMoney(body.Sales.GrandTotal))
+	grandTotal := fmt.Sprintf("%-9s %14s\n", "Total", utils.FormatMoney(body.Sales.GrandTotal+body.Sales.CreditCardCharge))
 	data = append(data, []byte(grandTotal)...)
 
 	data = append(data, 0x1D, 0x21, 0x00) // Reset to normal size
