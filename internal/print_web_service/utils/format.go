@@ -21,6 +21,11 @@ func FormatMoney(amount float32) string {
 	return p.Sprintf("%.0f", amount)
 }
 
+func FormatMoneyTwoDigitAfterComma(amount float32) string {
+	p := message.NewPrinter(language.MustParse("id"))
+	return p.Sprintf("%.2f", amount)
+}
+
 func CenterInParentheses(text string, width int) string {
 	padding := width - len(text)
 	left := padding / 2

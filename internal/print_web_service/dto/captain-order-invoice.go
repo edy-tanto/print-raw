@@ -14,6 +14,7 @@ type CaptainOrderInvoice struct {
 	GrandTotal         float32       `json:"grand_total"`
 	PaymentMethod      string        `json:"payment_method"`
 	Date               string        `json:"date"`
+	CreditCardCharge   float32       `json:"credit_card_charge"`
 	Note               string        `json:"note"`
 	IsPrintAsCopy      bool          `json:"is_print_as_copy"`
 	SalesDetails       []SalesDetail `json:"sales_details"`
