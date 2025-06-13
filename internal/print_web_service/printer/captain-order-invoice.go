@@ -93,7 +93,12 @@ func ExecutePrintCaptainOrderInvoice(body dto.PrintCaptainOrderInvoiceRequestBod
 	data = append(data, []byte(separator)...)
 
 	data = append(data, 0x1B, 0x45, 0x01) // Turn bold on
-	grandTotal := fmt.Sprintf("%-17s %11s %18s\n\n", " ", "Grand Total", utils.FormatMoney(body.CaptainOrderInvoice.GrandTotal))
+	grandTotal := fmt.Sprintf(
+		"%-17s %11s %18s\n\n",
+		" ",
+		"Grand Total",
+		utils.FormatMoneyTwoDigitAfterComma(body.CaptainOrderInvoice.GrandTotal+body.CaptainOrderInvoice.CreditCardCharge),
+	)
 	data = append(data, []byte(grandTotal)...)
 
 	ccCharge := fmt.Sprintf("%-10s %-14s\n", "CC Charge:", utils.FormatMoneyTwoDigitAfterComma(body.CaptainOrderInvoice.CreditCardCharge))
