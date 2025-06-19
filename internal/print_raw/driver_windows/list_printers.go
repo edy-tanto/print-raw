@@ -12,7 +12,7 @@ type Printer struct {
 	Name string `json:"Name"`
 }
 
-func list_printers() {
+func ListPrinters() {
 	// Execute PowerShell command to get printer list in JSON format.
 	cmd := exec.Command("powershell", "-Command", "Get-Printer | ConvertTo-Json")
 	output, err := cmd.Output()
