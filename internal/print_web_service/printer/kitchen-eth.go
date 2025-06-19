@@ -26,7 +26,7 @@ func ExecutePrintKitchenEth(body dto.PrintKitchenEthRequestBody) {
 	data = append(data, []byte(tableNumber)...)
 	customerName := fmt.Sprintf("%-14s : %-20s\n", "Table Number", body.Kitchen.CustomerName)
 	data = append(data, []byte(customerName)...)
-	location := fmt.Sprintf("%-14s : %-20s\n", "Location", "Kitchen")
+	location := fmt.Sprintf("%-14s : %-20s\n", "Location", body.Kitchen.PrinterLocationName)
 	data = append(data, []byte(location)...)
 
 	data = append(data, []byte("\n\n")...)
