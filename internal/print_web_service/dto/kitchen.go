@@ -7,6 +7,7 @@ type KitchenDetail struct {
 
 type Kitchen struct {
 	Id                  uint            `json:"id"`
+	WaitressName        string          `json:"waitress_name"`
 	Op                  string          `json:"op"`
 	Code                string          `json:"code"`
 	Outlet              string          `json:"outlet"`

@@ -38,7 +38,7 @@ func ExecutePrintCaptainOrderInvoice(body dto.PrintCaptainOrderInvoiceRequestBod
 	data = append(data, []byte(strings.Repeat("=", 48))...)
 
 	// Header
-	codeWithOp := fmt.Sprintf("%-11s %-14s %9s %10s\n", "Table/Room:", body.CaptainOrderInvoice.TableOrRoomNumber, "Waitress:", body.CaptainOrderInvoice.Op)
+	codeWithOp := fmt.Sprintf("%-11s %-14s %9s %10s\n", "Table/Room:", body.CaptainOrderInvoice.TableOrRoomNumber, "Waitress:", body.CaptainOrderInvoice.WaitressName)
 	data = append(data, []byte(codeWithOp)...)
 	tableOrRoomNumberWithCustomerCount := fmt.Sprintf("%-26s %-14s %-2d/ %-2d\n", " ", "#Adult/#Child:", body.CaptainOrderInvoice.CustomerAdultCount, body.CaptainOrderInvoice.CustomerChildCount)
 	data = append(data, []byte(tableOrRoomNumberWithCustomerCount)...)

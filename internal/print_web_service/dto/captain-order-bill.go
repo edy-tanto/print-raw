@@ -8,6 +8,7 @@ type CaptainOrderBillDetail struct {
 
 type CaptainOrderBill struct {
 	Id                      uint                     `json:"id"`
+	WaitressName            string                   `json:"waitress_name"`
 	Op                      string                   `json:"op"`
 	Code                    string                   `json:"code"`
 	CustomerName            string                   `json:"customer_name"`

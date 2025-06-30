@@ -2,6 +2,7 @@ package dto
 
 type CaptainOrderInvoice struct {
 	SalesId            uint          `json:"sales_id"`
+	WaitressName       string        `json:"waitress_name"`
 	Op                 string        `json:"op"`
 	CustomerName       string        `json:"customer_name"`
 	TableOrRoomNumber  string        `json:"table_or_room_number"`

@@ -18,7 +18,7 @@ func ExecutePrintTableCheck(body dto.PrintTableCheckRequestBody) {
 	data = append(data, []byte(strings.Repeat("=", 48))...)
 
 	// Header
-	codeWithOp := fmt.Sprintf("%-6s %-15s %-8s %-14s\n", "CO:", body.TableCheck.Code, "Waitress:", body.TableCheck.Op)
+	codeWithOp := fmt.Sprintf("%-6s %-15s %-8s %-14s\n", "CO:", body.TableCheck.Code, "Waitress:", body.TableCheck.WaitressName)
 	data = append(data, []byte(codeWithOp)...)
 	tableOrRoomNumberWithCustomerCount := fmt.Sprintf("%-6s %-10s %-13s %-2d/ %-2d\n", "Table/Room:", body.TableCheck.TableOrRoomNumber, "#Adult/#Child:", body.TableCheck.CustomerAdultCount, body.TableCheck.CustomerChildCount)
 	data = append(data, []byte(tableOrRoomNumberWithCustomerCount)...)

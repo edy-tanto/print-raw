@@ -20,7 +20,7 @@ func ExecutePrintKitchenEth(body dto.PrintKitchenEthRequestBody) {
 	// Header
 	codeWithOutlet := fmt.Sprintf("%-14s : %-15s %10s\n", "CO ID", body.Kitchen.Code, body.Kitchen.Outlet)
 	data = append(data, []byte(codeWithOutlet)...)
-	op := fmt.Sprintf("%-14s : %-20s\n", "Waitress", body.Kitchen.Op)
+	op := fmt.Sprintf("%-14s : %-20s\n", "Waitress", body.Kitchen.WaitressName)
 	data = append(data, []byte(op)...)
 	tableNumber := fmt.Sprintf("%-14s : %-20s\n", "Table/Room", body.Kitchen.TableOrRoomNumber)
 	data = append(data, []byte(tableNumber)...)
