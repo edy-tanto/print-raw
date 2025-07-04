@@ -26,13 +26,13 @@ func ExecutePrintCaptainOrderBill(body dto.PrintCaptainOrderBillRequestBody) {
 	yH := byte(y / 256)
 
 	data := []byte{
-		0x1B, 0x40,         // Initialize
-		0x1B, 0x61, 0x00,   // Left alignment
+		0x1B, 0x40, // Initialize
+		0x1B, 0x61, 0x00, // Left alignment
 		0x1D, 0x76, 0x30, 0x00,
 		xL, xH, yL, yH,
 	}
 	data = append(data, imageData...)
-	data = append(data, 0x0A, 0x0A) // Line feed tambahan
+	data = append(data, 0x0A, 0x0A)       // Line feed tambahan
 	data = append(data, 0x1D, 0x21, 0x00) // Normal size text
 	data = append(data, 0x1B, 0x61, 0x00) // Kembali ke kiri
 	data = append(data, []byte(strings.Repeat("=", 48))...)
@@ -78,7 +78,7 @@ func ExecutePrintCaptainOrderBill(body dto.PrintCaptainOrderBillRequestBody) {
 	totalQty := fmt.Sprintf("%-9s %-3d %-6s", "Quantity:", body.CaptainOrderBill.TotalQty, " ")
 	data = append(data, []byte(totalQty)...)
 	data = append(data, 0x1B, 0x45, 0x00) // Turn bold off
-	withSubtotal := fmt.Sprintf("%9s %18s\n", "Sub total", utils.FormatMoney(body.CaptainOrderBill.TotalGross))
+	withSubtotal := fmt.Sprintf("%9s %18s\n", "Sub total", utils.FormatMoney(body.CaptainOrderBill.Subtotal))
 	data = append(data, []byte(withSubtotal)...)
 
 	discountAmount := fmt.Sprintf("%-20s %-8s %18s\n", " ", "Discount", utils.FormatMoney(body.CaptainOrderBill.DiscountAmount))
@@ -88,7 +88,7 @@ func ExecutePrintCaptainOrderBill(body dto.PrintCaptainOrderBillRequestBody) {
 	data = append(data, []byte(separator)...)
 
 	data = append(data, 0x1B, 0x45, 0x01) // Turn bold on
-	grandTotal := fmt.Sprintf("%-17s %11s %18s\n", " ", "Grand Total", utils.FormatMoney(body.CaptainOrderBill.TotalNet))
+	grandTotal := fmt.Sprintf("%-17s %11s %18s\n", " ", "Grand Total", utils.FormatMoney(body.CaptainOrderBill.GrandTotal))
 	data = append(data, []byte(grandTotal)...)
 
 	data = append(data, []byte("\n\n")...)

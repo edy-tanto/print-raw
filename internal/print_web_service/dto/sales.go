@@ -1,9 +1,10 @@
 package dto
 
 type SalesDetail struct {
-	Item       string  `json:"item"`
-	Qty        uint    `json:"qty"`
-	TotalFinal float32 `json:"total_final"`
+	Item               string  `json:"item"`
+	Qty                uint    `json:"qty"`
+	TotalFinal         float32 `json:"total_final"`
+	SubtotalWithoutTax float32 `json:"subtotal_with_tax"`
 }
 
 type Sales struct {

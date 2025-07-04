@@ -17,6 +17,7 @@ type CaptainOrderBill struct {
 	CustomerChildCount      uint                     `json:"customer_child_count"`
 	TotalQty                uint                     `json:"total_qty"`
 	DiscountAmount          float32                  `json:"discount_amount"`
+	Subtotal                float32                  `json:"subtotal"`
 	TotalGross              float32                  `json:"total_gross"`
 	TotalNet                float32                  `json:"total_net"`
 	GrandTotal              float32                  `json:"grand_total"`

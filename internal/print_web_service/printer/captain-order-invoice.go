@@ -69,7 +69,7 @@ func ExecutePrintCaptainOrderInvoice(body dto.PrintCaptainOrderInvoiceRequestBod
 			"%-20s %8d %18s\n",
 			detail.Item,
 			detail.Qty,
-			utils.FormatMoney(detail.TotalFinal),
+			utils.FormatMoney(detail.SubtotalWithoutTax),
 		)
 		data = append(data, []byte(detailText)...)
 	}
@@ -79,7 +79,7 @@ func ExecutePrintCaptainOrderInvoice(body dto.PrintCaptainOrderInvoiceRequestBod
 	totalQty := fmt.Sprintf("%-9s %-3d %-6s", "Quantity:", body.CaptainOrderInvoice.TotalQty, " ")
 	data = append(data, []byte(totalQty)...)
 	data = append(data, 0x1B, 0x45, 0x00) // Turn bold off
-	withSubtotal := fmt.Sprintf("%9s %18s\n", "Sub total", utils.FormatMoney(body.CaptainOrderInvoice.TotalGross))
+	withSubtotal := fmt.Sprintf("%9s %18s\n", "Sub total", utils.FormatMoney(body.CaptainOrderInvoice.Subtotal))
 	data = append(data, []byte(withSubtotal)...)
 
 	discountAmount := fmt.Sprintf("%-20s %-8s %18s\n", " ", "Discount", utils.FormatMoney(body.CaptainOrderInvoice.DiscountAmount))
