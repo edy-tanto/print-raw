@@ -86,13 +86,6 @@ func ExecutePrintCaptainOrderInvoice(body dto.PrintCaptainOrderInvoiceRequestBod
 	data = append(data, []byte(discountAmount)...)
 
 	data = append(data, 0x1B, 0x45, 0x01) // Turn bold on
-	paymentMethod := fmt.Sprintf("%-15s", body.CaptainOrderInvoice.PaymentMethod)
-	data = append(data, []byte(paymentMethod)...)
-	data = append(data, 0x1B, 0x45, 0x00) // Turn bold off
-	separator := fmt.Sprintf("%33s\n", "--------------------------------")
-	data = append(data, []byte(separator)...)
-
-	data = append(data, 0x1B, 0x45, 0x01) // Turn bold on
 	grandTotal := fmt.Sprintf(
 		"%-17s %11s %18s\n\n",
 		" ",
@@ -100,6 +93,32 @@ func ExecutePrintCaptainOrderInvoice(body dto.PrintCaptainOrderInvoiceRequestBod
 		utils.FormatMoneyTwoDigitAfterComma(body.CaptainOrderInvoice.GrandTotal+body.CaptainOrderInvoice.CreditCardCharge),
 	)
 	data = append(data, []byte(grandTotal)...)
+
+	data = append(data, []byte("\n")...)
+
+	data = append(data, []byte(strings.Repeat("=", 48))...)
+	data = append(data, 0x1B, 0x61, 0x01)
+	paymentHeader := fmt.Sprintf("%s\n", "Payment")
+	data = append(data, []byte(paymentHeader)...)
+	data = append(data, 0x1B, 0x61, 0x00)
+	data = append(data, []byte(strings.Repeat("=", 48))...)
+
+	for _, payment := range body.CaptainOrderInvoice.Payments {
+		amount := strings.TrimSpace(utils.FormatMoneyTwoDigitAfterComma(payment.Total))
+		if len(amount) > 27 {
+			amount = amount[len(amount)-27:]
+		}
+		paymentLine := fmt.Sprintf(
+			"%-20s %27s\n",
+			payment.Method,
+			amount,
+		)
+		data = append(data, []byte(paymentLine)...)
+	}
+
+
+	data = append(data, []byte(strings.Repeat("-", 48))...)
+	data = append(data, []byte("\n")...)
 
 	ccCharge := fmt.Sprintf("%-10s %-14s\n", "CC Charge:", utils.FormatMoneyTwoDigitAfterComma(body.CaptainOrderInvoice.CreditCardCharge))
 	data = append(data, []byte(ccCharge)...)

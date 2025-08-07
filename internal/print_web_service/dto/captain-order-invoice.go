@@ -1,5 +1,10 @@
 package dto
 
+type Payment struct {
+	Method string  `json:"method"`
+	Total  float32 `json:"total"`
+}
+
 type CaptainOrderInvoice struct {
 	SalesId            uint          `json:"sales_id"`
 	WaitressName       string        `json:"waitress_name"`
@@ -14,7 +19,7 @@ type CaptainOrderInvoice struct {
 	TotalGross         float32       `json:"total_gross"`
 	TotalNet           float32       `json:"total_net"`
 	GrandTotal         float32       `json:"grand_total"`
-	PaymentMethod      string        `json:"payment_method"`
+	Payments           []Payment     `json:"payments"`
 	Date               string        `json:"date"`
 	CreditCardCharge   float32       `json:"credit_card_charge"`
 	Note               string        `json:"note"`
