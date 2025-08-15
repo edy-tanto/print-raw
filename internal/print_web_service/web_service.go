@@ -15,6 +15,7 @@ func NewPrintMuxServer() *http.ServeMux {
 	mux.Handle("/table-check", &handler.PrintTableCheckHandler{})
 	mux.Handle("/captain-order-bill", &handler.PrintCaptainOrderBillHandler{})
 	mux.Handle("/captain-order-invoice", &handler.PrintCaptainOrderInvoiceHandler{})
+	mux.Handle("/shift/report/cash-count", &handler.PrintShiftReportCashCountHandler{})
 
 	return mux
 }
