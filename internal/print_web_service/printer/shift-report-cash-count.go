@@ -20,7 +20,8 @@ func ExecutePrintShiftReportCashCount(body dto.PrintShiftReportCashCountRequestB
 	data = append(data, []byte(fmt.Sprintf("%-20s %27s\n", "User", body.ShiftReportCashCount.Shift.UserName))...)
 	data = append(data, []byte(fmt.Sprintf("%-20s %27s\n", "Time-In", utils.FormatDatetime(body.ShiftReportCashCount.Shift.ShiftStartAt)))...)
 	data = append(data, []byte(fmt.Sprintf("%-20s %27s\n", "Time-Out", utils.FormatDatetime(body.ShiftReportCashCount.Shift.ShiftEndAt)))...)
-	data = append(data, []byte(fmt.Sprintf("%-20s %27s\n", "Opening Balance", utils.FormatMoney(body.ShiftReportCashCount.Shift.OpeningBalance)))...)
+	// NOTE: Primus "dihilangkan tidak apa"
+	// data = append(data, []byte(fmt.Sprintf("%-20s %27s\n", "Opening Balance", utils.FormatMoney(body.ShiftReportCashCount.Shift.OpeningBalance)))...)
 
 	data = append(data, []byte(strings.Repeat("-", 48))...)
 	data = append(data, []byte("\n")...)
