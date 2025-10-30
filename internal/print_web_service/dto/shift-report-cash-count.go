@@ -30,4 +30,5 @@ type ShiftReportCashCount struct {
 
 type PrintShiftReportCashCountRequestBody struct {
 	ShiftReportCashCount ShiftReportCashCount `json:"report_cash_count"`
+	PrinterName          string               `json:"printer_name"`
 }

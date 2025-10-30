@@ -60,5 +60,5 @@ func ExecutePrintKitchen(body dto.PrintKitchenRequestBody) {
 	data = append(data, 0x1B, 0x64, 0x04) // Feed 4 lines
 	data = append(data, 0x1D, 0x56, 0x00) // Full cut
 
-	driver_windows.Print(data)
+	driver_windows.Print(data, body.PrinterName)
 }

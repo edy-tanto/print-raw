@@ -15,5 +15,6 @@ type CashRefund struct {
 }
 
 type PrintCashRefundRequestBody struct {
-	CashRefund CashRefund `json:"cash_refund"`
+	CashRefund  CashRefund `json:"cash_refund"`
+	PrinterName string     `json:"printer_name"`
 }

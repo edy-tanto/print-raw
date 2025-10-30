@@ -1,39 +1,56 @@
 package driver_windows
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
-	"log"
 	"os/exec"
+	"runtime"
+	"strings"
 )
 
-// Printer represents a simplified structure for printer data from PowerShell.
-type Printer struct {
-	Name string `json:"Name"`
+var ignoredPrinters = map[string]struct{}{
+	"OneNote for Windows 10": {},
+	"OneNote (Desktop)":      {},
+	"Microsoft Print to PDF": {},
+	"Fax":                    {},
 }
 
-func ListPrinters() {
-	// Execute PowerShell command to get printer list in JSON format.
-	cmd := exec.Command("powershell", "-Command", "Get-Printer | ConvertTo-Json")
-	output, err := cmd.Output()
-	if err != nil {
-		log.Fatalf("Failed to execute command: %v", err)
+// ListPrinters returns printer names that are currently Ready (idle) on the local machine.
+func ListPrinters() ([]string, error) {
+	if runtime.GOOS != "windows" {
+		return nil, ErrPrinterEnumerationUnsupported
 	}
 
-	// Parse the JSON output into a slice of Printer structs.
-	var printers []Printer
-	err = json.Unmarshal(output, &printers)
+	cmd := exec.Command(
+		"powershell.exe",
+		"-NoProfile",
+		"-Command",
+		"@(Get-CimInstance -ClassName Win32_Printer | Where-Object { $_.PrinterStatus -eq 3 -and -not $_.WorkOffline } | Select-Object -ExpandProperty Name) | ConvertTo-Json -Compress",
+	)
+
+	output, err := cmd.CombinedOutput()
 	if err != nil {
-		log.Fatalf("Failed to parse JSON: %v", err)
+		return nil, fmt.Errorf("enumerating printers: %w: %s", err, strings.TrimSpace(string(output)))
 	}
 
-	// Check if any printers were found and list them.
-	if len(printers) == 0 {
-		fmt.Println("No printers found.")
-	} else {
-		fmt.Println("Available printers:")
-		for _, printer := range printers {
-			fmt.Println(printer.Name)
+	output = bytes.TrimSpace(output)
+	if len(output) == 0 {
+		return []string{}, nil
+	}
+
+	var names []string
+	if err := json.Unmarshal(output, &names); err != nil {
+		return nil, fmt.Errorf("parsing printer list: %w", err)
+	}
+
+	filtered := names[:0]
+	for _, name := range names {
+		if _, skip := ignoredPrinters[name]; skip {
+			continue
 		}
+		filtered = append(filtered, name)
 	}
+
+	return filtered, nil
 }
