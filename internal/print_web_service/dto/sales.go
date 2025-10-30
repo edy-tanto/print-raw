@@ -25,5 +25,6 @@ type Sales struct {
 }
 
 type PrintRequestBody struct {
-	Sales Sales `json:"sales"`
+	Sales       Sales  `json:"sales"`
+	PrinterName string `json:"printer_name"`
 }

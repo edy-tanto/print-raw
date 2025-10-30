@@ -20,5 +20,6 @@ type Kitchen struct {
 }
 
 type PrintKitchenRequestBody struct {
-	Kitchen Kitchen `json:"kitchen"`
+	Kitchen     Kitchen `json:"kitchen"`
+	PrinterName string  `json:"printer_name"`
 }

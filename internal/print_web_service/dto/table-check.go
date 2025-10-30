@@ -21,5 +21,6 @@ type TableCheck struct {
 }
 
 type PrintTableCheckRequestBody struct {
-	TableCheck TableCheck `json:"table_check"`
+	TableCheck  TableCheck `json:"table_check"`
+	PrinterName string     `json:"printer_name"`
 }

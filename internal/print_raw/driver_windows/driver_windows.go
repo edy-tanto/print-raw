@@ -68,9 +68,9 @@ func ImageToBytes(filePath string, maxWidth int) ([]byte, int, int, error) {
 	return imageData, width, height, nil
 }
 
-func Print(data []byte) {
+func Print(data []byte, printerNameRequest string) {
 	// Printer name
-	printerName, err := syscall.UTF16PtrFromString("EPSON TM-T82 Receipt")
+	printerName, err := syscall.UTF16PtrFromString(printerNameRequest)
 	if err != nil {
 		fmt.Println("Error converting printer name:", err)
 		return

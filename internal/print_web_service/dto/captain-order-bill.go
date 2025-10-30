@@ -29,4 +29,5 @@ type CaptainOrderBill struct {
 
 type PrintCaptainOrderBillRequestBody struct {
 	CaptainOrderBill CaptainOrderBill `json:"captain_order_bill"`
+	PrinterName      string           `json:"printer_name"`
 }
