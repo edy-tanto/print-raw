@@ -65,13 +65,28 @@ func ExecutePrintCaptainOrderBill(body dto.PrintCaptainOrderBillRequestBody) {
 	data = append(data, []byte(strings.Repeat("-", 48))...)
 
 	for _, detail := range body.CaptainOrderBill.CaptainOrderBillDetails {
-		detailText := fmt.Sprintf(
-			"%-20s %8d %18s\n",
-			detail.Item,
-			detail.Qty,
-			utils.FormatMoney(detail.Subtotal),
-		)
-		data = append(data, []byte(detailText)...)
+		// wrap product name to 20 chars; first line shows qty and subtotal, continuations omit them
+		const itemColWidth = 20
+		nameRunes := []rune(detail.Item)
+		if len(nameRunes) <= itemColWidth {
+			detailText := fmt.Sprintf("%-20s %8d %18s\n", detail.Item, detail.Qty, utils.FormatMoney(detail.Subtotal))
+			data = append(data, []byte(detailText)...)
+			continue
+		}
+
+		first := string(nameRunes[:itemColWidth])
+		firstLine := fmt.Sprintf("%-20s %8d %18s\n", first, detail.Qty, utils.FormatMoney(detail.Subtotal))
+		data = append(data, []byte(firstLine)...)
+
+		for i := itemColWidth; i < len(nameRunes); i += itemColWidth {
+			end := i + itemColWidth
+			if end > len(nameRunes) {
+				end = len(nameRunes)
+			}
+			part := string(nameRunes[i:end])
+			contLine := fmt.Sprintf("%-20s %8s %18s\n", part, "", "")
+			data = append(data, []byte(contLine)...)
+		}
 	}
 	data = append(data, []byte(strings.Repeat("-", 48))...)
 	data = append(data, 0x1B, 0x45, 0x01) // Turn bold on

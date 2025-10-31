@@ -58,16 +58,51 @@ func ExecutePrintCashRefund(body dto.PrintCashRefundRequestBody) {
 	data = append(data, 0x1B, 0x45, 0x00) // Turn bold off
 
 	for _, detail := range body.CashRefund.CashRefundDetails {
-		// TODO: handle if item name to long, solution new line or truncate at the last
-		detailText := fmt.Sprintf(
+		// wrap long item names to fit item column (20 chars)
+		const itemColWidth = 20
+		nameRunes := []rune(detail.Item)
+		if len(nameRunes) <= itemColWidth {
+			detailText := fmt.Sprintf(
+				"%-20s %-1s %3d %-6s %14s\n",
+				detail.Item,
+				" ",
+				detail.Qty,
+				" ",
+				utils.FormatMoney(detail.Subtotal),
+			)
+			data = append(data, []byte(detailText)...)
+			continue
+		}
+
+		// First line with qty and price
+		first := string(nameRunes[:itemColWidth])
+		firstLine := fmt.Sprintf(
 			"%-20s %-1s %3d %-6s %14s\n",
-			detail.Item,
+			first,
 			" ",
 			detail.Qty,
 			" ",
 			utils.FormatMoney(detail.Subtotal),
 		)
-		data = append(data, []byte(detailText)...)
+		data = append(data, []byte(firstLine)...)
+
+		// Continuation lines: only item column
+		for i := itemColWidth; i < len(nameRunes); i += itemColWidth {
+			end := i + itemColWidth
+			if end > len(nameRunes) {
+				end = len(nameRunes)
+			}
+			part := string(nameRunes[i:end])
+			contLine := fmt.Sprintf(
+				"%-20s %-1s %3s %-6s %14s\n",
+				part,
+				" ",
+				"",
+				" ",
+				"",
+			)
+			data = append(data, []byte(contLine)...)
+		}
 	}
 
 	data = append(data, []byte("\n")...)
