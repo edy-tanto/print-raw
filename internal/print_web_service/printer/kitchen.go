@@ -38,12 +38,28 @@ func ExecutePrintKitchen(body dto.PrintKitchenRequestBody) {
 	data = append(data, []byte(strings.Repeat("-", 48))...)
 
 	for _, detail := range body.Kitchen.KitchenDetails {
-		detailText := fmt.Sprintf(
-			"%9d %-25s\n",
-			detail.Qty,
-			detail.Item,
-		)
-		data = append(data, []byte(detailText)...)
+		// wrap product name to 25 chars; first line shows qty, continuations omit qty
+		const itemColWidth = 25
+		nameRunes := []rune(detail.Item)
+		if len(nameRunes) <= itemColWidth {
+			detailText := fmt.Sprintf("%9d %-25s\n", detail.Qty, detail.Item)
+			data = append(data, []byte(detailText)...)
+			continue
+		}
+
+		first := string(nameRunes[:itemColWidth])
+		firstLine := fmt.Sprintf("%9d %-25s\n", detail.Qty, first)
+		data = append(data, []byte(firstLine)...)
+
+		for i := itemColWidth; i < len(nameRunes); i += itemColWidth {
+			end := i + itemColWidth
+			if end > len(nameRunes) {
+				end = len(nameRunes)
+			}
+			part := string(nameRunes[i:end])
+			contLine := fmt.Sprintf("%9s %-25s\n", "", part)
+			data = append(data, []byte(contLine)...)
+		}
 	}
 	data = append(data, []byte(strings.Repeat("-", 48))...)
 

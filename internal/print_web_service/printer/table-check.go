@@ -34,12 +34,28 @@ func ExecutePrintTableCheck(body dto.PrintTableCheckRequestBody) {
 	data = append(data, []byte(strings.Repeat("-", 48))...)
 
 	for _, detail := range body.TableCheck.TableCheckDetails {
-		detailText := fmt.Sprintf(
-			"%-30s %-14d\n",
-			detail.Item,
-			detail.Qty,
-		)
-		data = append(data, []byte(detailText)...)
+		// wrap product name to 30 chars; first line shows qty, continuations omit qty
+		const itemColWidth = 30
+		nameRunes := []rune(detail.Item)
+		if len(nameRunes) <= itemColWidth {
+			detailText := fmt.Sprintf("%-30s %-14d\n", detail.Item, detail.Qty)
+			data = append(data, []byte(detailText)...)
+			continue
+		}
+
+		first := string(nameRunes[:itemColWidth])
+		firstLine := fmt.Sprintf("%-30s %-14d\n", first, detail.Qty)
+		data = append(data, []byte(firstLine)...)
+
+		for i := itemColWidth; i < len(nameRunes); i += itemColWidth {
+			end := i + itemColWidth
+			if end > len(nameRunes) {
+				end = len(nameRunes)
+			}
+			part := string(nameRunes[i:end])
+			contLine := fmt.Sprintf("%-30s %-14s\n", part, "")
+			data = append(data, []byte(contLine)...)
+		}
 	}
 	data = append(data, []byte(strings.Repeat("-", 48))...)
 	totalQty := fmt.Sprintf("%-10s %-15d\n", "Quantity:", body.TableCheck.TotalQty)
