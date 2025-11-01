@@ -8,7 +8,7 @@ import (
 )
 
 const (
-	serviceName = "PrintRawWebService"
+	serviceName = "PrintRawWeb"
 	serviceAddr = ":8080"
 )
 

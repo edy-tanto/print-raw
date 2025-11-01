@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"net"
 	"os"
+	"path/filepath"
 	"syscall"
 	"time"
 	"unsafe"
@@ -30,7 +31,27 @@ type DOC_INFO_1 struct {
 	pDatatype   *uint16
 }
 
+func resolveAssetPath(filePath string) string {
+	// Services start with C:\Windows\System32 as the working directory, so ensure assets resolve relative to the executable.
+	if filepath.IsAbs(filePath) {
+		return filePath
+	}
+
+	exePath, err := os.Executable()
+	if err == nil {
+		exeDir := filepath.Dir(exePath)
+		candidate := filepath.Join(exeDir, filePath)
+		if _, err := os.Stat(candidate); err == nil {
+			return candidate
+		}
+	}
+
+	return filePath
+}
+
 func ImageToBytes(filePath string, maxWidth int) ([]byte, int, int, error) {
+	filePath = resolveAssetPath(filePath)
+
 	// Open the image file
 	file, err := os.Open(filePath)
 	if err != nil {
