@@ -1,0 +1,68 @@
+{
+  "info": {
+    "name": "PrintRawWeb POS Service",
+    "description": "Collection for interacting with the PrintRawWeb Windows service.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "version": {
+      "major": 1,
+      "minor": 0,
+      "patch": 0
+    }
+  },
+  "item": [
+    {
+      "name": "List Printers",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/printers",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "printers"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Print POS Receipt",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"sales\": {\n    \"id\": 12345,\n    \"unit_business_name\": \"Paradis Bistro\",\n    \"code\": \"INV-2024-0001\",\n    \"op\": \"OP-78311\",\n    \"customer_name\": \"Jane Doe\",\n    \"table_number\": \"A7\",\n    \"payment_method\": \"Credit Card\",\n    \"date\": \"2024-05-10 19:32\",\n    \"is_print_as_copy\": false,\n    \"footnote\": \"Thank you for dining with us!\",\n    \"footnote_align\": \"center\",\n    \"grand_total\": 485000,\n    \"credit_card_charge\": 1500,\n    \"sales_details\": [\n      {\n        \"item\": \"Grilled Salmon\",\n        \"qty\": 2,\n        \"total_final\": 240000,\n        \"subtotal_with_tax\": 240000\n      },\n      {\n        \"item\": \"Sparkling Water\",\n        \"qty\": 1,\n        \"total_final\": 45000,\n        \"subtotal_with_tax\": 45000\n      }\n    ]\n  },\n  \"printer_name\": \"EPSON TM-T88V Receipt\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            ""
+          ]
+        }
+      },
+      "response": []
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080"
+    }
+  ]
+}
