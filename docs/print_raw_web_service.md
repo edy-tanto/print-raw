@@ -13,8 +13,8 @@ The service accepts JSON payloads describing receipts, converts any referenced b
 
 ## Prerequisites
 
-- Windows 10 or later with Administrator access (required to register services).
-- Go toolchain (1.20+) if you need to rebuild the binary.
+- Windows 7 or later with Administrator access (required to register services).
+- Go toolchain (1.17.x) if you need to rebuild the binary.
 - Target receipt printer installed locally or reachable over Ethernet.
 - Bitmap assets (e.g., `paradis-q.bmp`, `captain-order-receipt-header.bmp`) copied into the same directory as the executable.
 
