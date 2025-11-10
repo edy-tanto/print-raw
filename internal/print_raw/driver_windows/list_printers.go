@@ -36,27 +36,14 @@ func ListPrinters() ([]string, error) {
 		}
 	}
 
-	cmd := exec.Command(
-		"powershell.exe",
-		"-NoProfile",
-		"-Command",
-		script,
-	)
-
-	output, err := cmd.CombinedOutput()
+	useModernQuery := script == modernPrinterQuery
+	names, err := fetchPrinterNames(script, !useModernQuery)
+	if err != nil && useModernQuery {
+		fmt.Fprintf(os.Stderr, "modern printer query failed (%v); falling back to legacy WMI\n", err)
+		names, err = fetchPrinterNames(legacyPrinterQuery, true)
+	}
 	if err != nil {
-		return nil, fmt.Errorf("enumerating printers: %w: %s", err, strings.TrimSpace(string(output)))
-	}
-
-	output = bytes.TrimSpace(output)
-	output = sanitizeLegacyJSON(output)
-	if len(output) == 0 {
-		return []string{}, nil
-	}
-
-	var names []string
-	if err := json.Unmarshal(output, &names); err != nil {
-		return nil, fmt.Errorf("parsing printer list: %w", err)
+		return nil, err
 	}
 
 	filtered := names[:0]
@@ -74,6 +61,28 @@ const (
 	modernPrinterQuery = `@(Get-CimInstance -ClassName Win32_Printer | Where-Object { $_.PrinterStatus -eq 3 -and -not $_.WorkOffline } | Select-Object -ExpandProperty Name) | ConvertTo-Json -Compress`
 	legacyPrinterQuery = `'[' + ((Get-WmiObject -Class Win32_Printer | Where-Object { $_.PrinterStatus -eq 3 -and -not $_.WorkOffline } | ForEach-Object { $escaped = $_.Name.Replace('\', '\\').Replace('"', '\"'); '"' + $escaped + '"' }) -join ',') + ']'`
 )
+
+func fetchPrinterNames(script string, sanitize bool) ([]string, error) {
+	output, err := runPowerShell(script)
+	if err != nil {
+		return nil, err
+	}
+
+	output = bytes.TrimSpace(output)
+	if sanitize {
+		output = sanitizeLegacyJSON(output)
+	}
+	if len(output) == 0 {
+		return []string{}, nil
+	}
+
+	var names []string
+	if err := json.Unmarshal(output, &names); err != nil {
+		return nil, fmt.Errorf("parsing printer list: %w", err)
+	}
+
+	return names, nil
+}
 
 func windowsMajorVersion() (int, error) {
 	key, err := registry.OpenKey(registry.LOCAL_MACHINE, `SOFTWARE\Microsoft\Windows NT\CurrentVersion`, registry.QUERY_VALUE)
@@ -102,6 +111,29 @@ func windowsMajorVersion() (int, error) {
 	}
 
 	return major, nil
+}
+
+func runPowerShell(script string) ([]byte, error) {
+	cmd := exec.Command(
+		"powershell.exe",
+		"-NoProfile",
+		"-Command",
+		script,
+	)
+
+	var stdout, stderr bytes.Buffer
+	cmd.Stdout = &stdout
+	cmd.Stderr = &stderr
+
+	if err := cmd.Run(); err != nil {
+		return nil, fmt.Errorf("enumerating printers: %w: %s", err, strings.TrimSpace(stderr.String()))
+	}
+
+	if stderr.Len() > 0 {
+		return nil, fmt.Errorf("enumerating printers: %s", strings.TrimSpace(stderr.String()))
+	}
+
+	return stdout.Bytes(), nil
 }
 
 func sanitizeLegacyJSON(data []byte) []byte {
