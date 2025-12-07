@@ -27,7 +27,13 @@ func FormatMoneyTwoDigitAfterComma(amount float32) string {
 }
 
 func CenterInParentheses(text string, width int) string {
-	padding := width - len(text)
+	// Account for the two parentheses characters
+	availableWidth := width - 2
+	if len(text) > availableWidth {
+		// Truncate text if it's too long to fit
+		text = text[:availableWidth]
+	}
+	padding := availableWidth - len(text)
 	left := padding / 2
 	right := padding - left
 	return fmt.Sprintf("(%s%s%s)", strings.Repeat(" ", left), text, strings.Repeat(" ", right))
