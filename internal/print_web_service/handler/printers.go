@@ -38,7 +38,10 @@ func (h *PrinterListHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			status = http.StatusNotImplemented
 		}
 
-		http.Error(w, "unable to list printers", status)
+		w.WriteHeader(status)
+		json.NewEncoder(w).Encode(map[string]string{
+			"error": "unable to list printers",
+		})
 		return
 	}
 
