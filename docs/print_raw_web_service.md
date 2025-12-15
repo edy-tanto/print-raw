@@ -21,7 +21,15 @@ The service accepts JSON payloads describing receipts, converts any referenced b
 ## Build & Deploy
 
 1. **Build the service binary (optional if you already have it):**
+   
+   **Requirements:**
+   - Go version must be **1.17.13**
+   - Binary must be built for **32-bit** architecture
+   
+   **Build steps:**
    ```powershell
+   cd cmd/print-web-service
+   set GOARCH=386
    go build -o bin\print_web_service.exe .\cmd\print_web_service
    ```
 2. **Stage runtime assets:**
