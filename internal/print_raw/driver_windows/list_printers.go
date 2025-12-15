@@ -14,14 +14,16 @@ import (
 )
 
 var ignoredPrinters = map[string]struct{}{
-	"OneNote for Windows 10":        {},
-	"OneNote (Desktop)":             {},
+	"OneNote for Windows 10": {},
+	"OneNote (Desktop)":      {},
 	"Microsoft Print to PDF":        {},
 	"Fax":                           {},
 	"Microsoft XPS Document Writer": {},
 }
 
 // ListPrinters returns printer names that are currently Ready (idle) on the local machine.
+// This includes both local printers and shared/network printers. For shared printers,
+// the function uses more flexible filtering to account for Windows status reporting quirks.
 func ListPrinters() ([]string, error) {
 	if runtime.GOOS != "windows" {
 		return nil, ErrPrinterEnumerationUnsupported
@@ -58,8 +60,15 @@ func ListPrinters() ([]string, error) {
 }
 
 const (
-	modernPrinterQuery = `@(Get-CimInstance -ClassName Win32_Printer | Where-Object { $_.PrinterStatus -eq 3 -and -not $_.WorkOffline } | Select-Object -ExpandProperty Name) | ConvertTo-Json -Compress`
-	legacyPrinterQuery = `'[' + ((Get-WmiObject -Class Win32_Printer | Where-Object { $_.PrinterStatus -eq 3 -and -not $_.WorkOffline } | ForEach-Object { $escaped = $_.Name.Replace('\', '\\').Replace('"', '\"'); '"' + $escaped + '"' }) -join ',') + ']'`
+	// modernPrinterQuery uses CIM for Windows 10+ with improved shared printer support.
+	// Filter logic:
+	// - Local printers: Status 3 (Idle) and not WorkOffline (strict)
+	// - Shared/Network printers: Status 1,2,3,4,5,6 (Other, Unknown, Idle, Printing, Warmup, Stopped printing) and not Status 7 (Offline), WorkOffline ignored
+	//   Note: Status 4,5,6 are included to handle printer during/after print job completion
+	modernPrinterQuery = `@(Get-CimInstance -ClassName Win32_Printer | Where-Object { ($_.PrinterStatus -eq 3 -and -not $_.WorkOffline) -or (($_.Shared -eq $true -or $_.Network -eq $true) -and $_.PrinterStatus -in @(1,2,3,4,5,6) -and $_.PrinterStatus -ne 7) } | Select-Object -ExpandProperty Name) | ConvertTo-Json -Compress`
+	// legacyPrinterQuery uses WMI for Windows 7 with improved shared printer support.
+	// Same filter logic as modernPrinterQuery but using WMI syntax.
+	legacyPrinterQuery = `'[' + ((Get-WmiObject -Class Win32_Printer | Where-Object { ($_.PrinterStatus -eq 3 -and -not $_.WorkOffline) -or (($_.Shared -eq $true -or $_.Network -eq $true) -and ($_.PrinterStatus -eq 1 -or $_.PrinterStatus -eq 2 -or $_.PrinterStatus -eq 3 -or $_.PrinterStatus -eq 4 -or $_.PrinterStatus -eq 5 -or $_.PrinterStatus -eq 6) -and $_.PrinterStatus -ne 7) } | ForEach-Object { $escaped = $_.Name.Replace('\', '\\').Replace('"', '\"'); '"' + $escaped + '"' }) -join ',') + ']'`
 )
 
 func fetchPrinterNames(script string, sanitize bool) ([]string, error) {
