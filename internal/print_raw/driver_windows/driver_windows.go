@@ -8,6 +8,7 @@ import (
 	"net"
 	"os"
 	"path/filepath"
+	"strings"
 	"syscall"
 	"time"
 	"unsafe"
@@ -90,10 +91,17 @@ func ImageToBytes(filePath string, maxWidth int) ([]byte, int, int, error) {
 }
 
 func Print(data []byte, printerNameRequest string) {
+	// Normalize printer name (trim whitespace, handle UNC paths for shared printers)
+	printerNameRequest = strings.TrimSpace(printerNameRequest)
+	if printerNameRequest == "" {
+		fmt.Println("Error: printer name is empty")
+		return
+	}
+
 	// Printer name
 	printerName, err := syscall.UTF16PtrFromString(printerNameRequest)
 	if err != nil {
-		fmt.Println("Error converting printer name:", err)
+		fmt.Printf("Error converting printer name %q: %v\n", printerNameRequest, err)
 		return
 	}
 
@@ -105,7 +113,13 @@ func Print(data []byte, printerNameRequest string) {
 		0,
 	)
 	if ret == 0 {
-		fmt.Println("Error opening printer:", err)
+		// Get Windows error code for more detailed error information
+		errCode := syscall.GetLastError()
+		fmt.Printf("Error opening printer %q: %v (Windows error code: %d)\n", printerNameRequest, err, errCode)
+		fmt.Println("Note: For shared printers, ensure:")
+		fmt.Println("  - Printer is accessible via network")
+		fmt.Println("  - Service account has permission to access the printer")
+		fmt.Println("  - Printer name format is correct (e.g., \\\\server\\printer for shared printers)")
 		return
 	}
 	defer closePrinter.Call(uintptr(handle))
@@ -123,7 +137,8 @@ func Print(data []byte, printerNameRequest string) {
 		uintptr(unsafe.Pointer(&di)),
 	)
 	if ret == 0 {
-		fmt.Println("Error starting document:", err)
+		errCode := syscall.GetLastError()
+		fmt.Printf("Error starting document on printer %q: %v (Windows error code: %d)\n", printerNameRequest, err, errCode)
 		return
 	}
 
@@ -136,18 +151,20 @@ func Print(data []byte, printerNameRequest string) {
 		uintptr(unsafe.Pointer(&written)),
 	)
 	if ret == 0 {
-		fmt.Println("Error writing to printer:", err)
+		errCode := syscall.GetLastError()
+		fmt.Printf("Error writing to printer %q: %v (Windows error code: %d)\n", printerNameRequest, err, errCode)
 		return
 	}
 
 	// End document
 	ret, _, err = endDocPrinter.Call(uintptr(handle))
 	if ret == 0 {
-		fmt.Println("Error ending document:", err)
+		errCode := syscall.GetLastError()
+		fmt.Printf("Error ending document on printer %q: %v (Windows error code: %d)\n", printerNameRequest, err, errCode)
 		return
 	}
 
-	fmt.Println("Print successful!")
+	fmt.Printf("Print successful to printer: %q\n", printerNameRequest)
 }
 
 // Target printer value example "192.168.10.252:9100"
