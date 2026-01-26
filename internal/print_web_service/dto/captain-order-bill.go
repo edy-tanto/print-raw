@@ -22,6 +22,7 @@ type CaptainOrderBill struct {
 	TotalNet                float32                  `json:"total_net"`
 	GrandTotal              float32                  `json:"grand_total"`
 	Date                    string                   `json:"date"`
+	PostDate                string                   `json:"post_date"`
 	Note                    string                   `json:"note"`
 	IsPrintAsCopy           bool                     `json:"is_print_as_copy"`
 	CaptainOrderBillDetails []CaptainOrderBillDetail `json:"captain_order_bill_details"`

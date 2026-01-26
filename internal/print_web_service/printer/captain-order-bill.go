@@ -142,7 +142,22 @@ func ExecutePrintCaptainOrderBill(body dto.PrintCaptainOrderBillRequestBody) {
 	localTime := parsedTime.In(time.Local)
 	postingDate := fmt.Sprintf("%-10s %-20s\n", "Posting Date:", localTime.Format("02/01/2006 15:04:05"))
 	data = append(data, []byte(postingDate)...)
-	printedWithAuditDate := fmt.Sprintf("%-8s %-20s %-5s %-17s\n", "Printed:", localTime.Format("02/01/2006 15:04:05"), "Audit:", localTime.Format("02/01/2006"))
+	
+	// Printed: menggunakan waktu sekarang saat print
+	printTime := time.Now()
+	// Audit: menggunakan PostDate dari body
+	var auditTime time.Time
+	if body.CaptainOrderBill.PostDate != "" {
+		parsedPostDate, err := time.Parse(time.RFC3339Nano, body.CaptainOrderBill.PostDate)
+		if err == nil {
+			auditTime = parsedPostDate.In(time.Local)
+		} else {
+			auditTime = printTime
+		}
+	} else {
+		auditTime = printTime
+	}
+	printedWithAuditDate := fmt.Sprintf("%-8s %-20s %-5s %-17s\n", "Printed:", printTime.Format("02/01/2006 15:04:05"), "Audit:", auditTime.Format("02/01/2006"))
 	data = append(data, []byte(printedWithAuditDate)...)
 
 	// Footer
