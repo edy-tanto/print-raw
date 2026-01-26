@@ -153,6 +153,18 @@ func ExecutePrint(body dto.PrintRequestBody) {
 
 	data = append(data, 0x1D, 0x21, 0x00) // Reset to normal size
 
+	// Add Saldo CashQ only if cash_q_balance is not null
+	if body.Sales.CashQBalance != nil {
+		// Add separator line
+		data = append(data, []byte(strings.Repeat("-", 48))...)
+		data = append(data, []byte("\n")...)
+
+		// Add Saldo CashQ with right-aligned value (at the rightmost position)
+		// Format: label (11 chars) + space (1 char) + value (36 chars) = 48 chars total
+		cashQBalance := fmt.Sprintf("%-11s %36s\n", "Saldo CashQ", utils.FormatMoney(*body.Sales.CashQBalance))
+		data = append(data, []byte(cashQBalance)...)
+	}
+
 	// Footer
 	if body.Sales.Footnote != "" {
 		data = append(data, []byte("\n")...)
