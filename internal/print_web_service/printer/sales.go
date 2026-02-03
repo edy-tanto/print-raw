@@ -166,22 +166,31 @@ func ExecutePrint(body dto.PrintRequestBody) {
 	}
 
 	// Footer
-	if body.Sales.Footnote != "" {
-		data = append(data, []byte("\n")...)
-		data = append(data, []byte(strings.Repeat("-", 48))...)
-		data = append(data, 0x1B, 0x4D, 0x01) // Change font
-		data = append(data, []byte("\n\n")...)
+	if len(body.Sales.Footnote) > 0 {
+		for _, item := range body.Sales.Footnote {
+			data = append(data, 0x1B, 0x4D, 0x00) // Font normal
+			data = append(data, []byte("\n")...)
+			data = append(data, []byte(strings.Repeat("-", 48))...)
+			data = append(data, 0x1B, 0x4D, 0x01) // Change font
+			data = append(data, []byte("\n\n")...)
 
-		switch body.Sales.FootnoteAlign {
-		case string(FootnoteAlignCenter):
-			data = append(data, 0x1B, 0x61, 0x01)
-		case string(FootnoteAlignRight):
-			data = append(data, 0x1B, 0x61, 0x02)
-		default: // FootnoteAlignLeft or unknown
-			data = append(data, 0x1B, 0x61, 0x00)
+			align := item.Alignment
+			if align == "" {
+				align = body.Sales.FootnoteAlign
+			}
+			if align == "" {
+				align = string(FootnoteAlignCenter)
+			}
+			switch align {
+			case string(FootnoteAlignCenter):
+				data = append(data, 0x1B, 0x61, 0x01)
+			case string(FootnoteAlignRight):
+				data = append(data, 0x1B, 0x61, 0x02)
+			default: // LEFT or unknown
+				data = append(data, 0x1B, 0x61, 0x00)
+			}
+			data = append(data, []byte(item.Footnote+"\n")...)
 		}
-
-		data = append(data, []byte(body.Sales.Footnote)...)
 	}
 
 	data = append(data, 0x1B, 0x64, 0x04) // Feed 4 lines
