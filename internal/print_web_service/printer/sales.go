@@ -148,7 +148,7 @@ func ExecutePrint(body dto.PrintRequestBody) {
 
 	data = append(data, 0x1D, 0x21, 0x11) // Double height
 
-	grandTotal := fmt.Sprintf("%-9s %14s\n", "Total", utils.FormatMoney(body.Sales.GrandTotal+body.Sales.CreditCardCharge))
+	grandTotal := fmt.Sprintf("%-9s %14s\n", "Total", utils.FormatMoney(body.Sales.GrandTotal))
 	data = append(data, []byte(grandTotal)...)
 
 	data = append(data, 0x1D, 0x21, 0x00) // Reset to normal size

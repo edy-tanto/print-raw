@@ -105,7 +105,7 @@ func ExecutePrintCaptainOrderInvoice(body dto.PrintCaptainOrderInvoiceRequestBod
 		"%-17s %11s %18s\n\n",
 		" ",
 		"Grand Total",
-		utils.FormatMoneyTwoDigitAfterComma(body.CaptainOrderInvoice.GrandTotal+body.CaptainOrderInvoice.CreditCardCharge),
+		utils.FormatMoneyTwoDigitAfterComma(body.CaptainOrderInvoice.GrandTotal),
 	)
 	data = append(data, []byte(grandTotal)...)
 
@@ -168,7 +168,7 @@ func ExecutePrintCaptainOrderInvoice(body dto.PrintCaptainOrderInvoiceRequestBod
 	localTime := parsedTime.In(time.Local)
 	postingDate := fmt.Sprintf("%-10s %-20s\n", "Posting Date:", localTime.Format("02/01/2006 15:04:05"))
 	data = append(data, []byte(postingDate)...)
-	
+
 	// Printed: menggunakan waktu sekarang saat print
 	printTime := time.Now()
 	// Audit: menggunakan PostDate dari body
