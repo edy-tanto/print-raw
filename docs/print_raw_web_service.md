@@ -20,32 +20,70 @@ The service accepts JSON payloads describing receipts, converts any referenced b
 
 ## Build & Deploy
 
-1. **Build the service binary (optional if you already have it):**
-   
-   **Requirements:**
-   - Go version must be **1.17.13**
-   - Binary must be built for **32-bit** architecture
-   
-   **Build steps:**
-   ```powershell
-   cd cmd/print-web-service
-   set GOARCH=386
-   go build -o bin\print_web_service.exe .\cmd\print_web_service
-   ```
-2. **Stage runtime assets:**
-   - Copy `bin\print_web_service.exe` and required `.bmp` header images into the folder where the service will run (the install scripts expect everything beside each other in `bin\`).
-3. **Install or update the Windows service (run as Administrator):**
+### Build (rekomendasi: pakai script)
+
+Dari **root project** di Git Bash:
+
+```bash
+sh build.sh
+```
+
+- Script akan menanyakan **version** build; kosongkan lalu Enter untuk memakai version yang ada di `bin/version.txt`.
+- Hasil: binary 32-bit di `bin/print_web_service.exe` dan ZIP `installer-printer-<version>.zip` di `C:\Users\Dream\Downloads` (berisi exe + file .bmp + script install).
+
+**Build manual (tanpa script):** Go 1.17.x, arsitektur 32-bit:
+
+```powershell
+# Dari root project
+$env:GOARCH = "386"
+go build -o bin/print_web_service.exe ./cmd/print_web_service
+```
+
+Pastikan folder `bin/` berisi file `.bmp` yang diperlukan (mis. `paradis-q.bmp`, `captain-order-receipt-header.bmp`).
+
+### Jalankan development (go run)
+
+Dari **root project**, tanpa build dulu:
+
+```bash
+go run ./cmd/print_web_service
+```
+
+PowerShell:
+
+```powershell
+go run .\cmd\print_web_service
+```
+
+Server berjalan di http://localhost:8080. Hentikan dengan Ctrl+C. Aset `.bmp` sebaiknya ada di `bin/` atau root project.
+
+### Jalankan langsung (executable)
+
+Untuk tes pakai binary yang sudah di-build:
+
+```powershell
+cd bin
+.\print_web_service.exe
+```
+
+Server berjalan di http://localhost:8080. Hentikan dengan Ctrl+C.
+
+### Install / jalankan sebagai Windows Service
+
+1. **Install** (jalankan sebagai Administrator):
    ```powershell
    bin\install.bat
    ```
-   - If the service already exists, the script simply starts it.
-   - Use `bin\uninstall.bat` to remove and `bin\start.bat` / `bin\stop.bat` to control it afterward.
-4. **Verify status (optional):**
+   Jika service sudah ada, script hanya akan menjalankannya.
+
+2. **Kontrol:** `bin\start.bat`, `bin\stop.bat`, `bin\uninstall.bat`
+
+3. **Cek status:**
    ```powershell
    sc.exe query PrintRawWeb
    ```
 
-> **Note:** When running as a service, Windows defaults the working directory to `C:\Windows\System32`. The application automatically resolves relative asset paths against the executable location, so keep any bitmap assets alongside `print_web_service.exe`.
+> **Note:** Saat berjalan sebagai service, working directory Windows default ke `C:\Windows\System32`. Aplikasi mencari aset (bitmap) relatif terhadap lokasi executable, jadi simpan file `.bmp` satu folder dengan `print_web_service.exe`.
 
 ## API Summary
 
